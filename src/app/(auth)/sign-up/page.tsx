@@ -4,15 +4,20 @@ import { AuthCard } from "@/components/auth/auth-card";
 import { authClient } from "@/lib/auth-client";
 
 export default function SignUpPage() {
+    // The redirect to "/" after a successful signup is handled by AuthCard.
+    // Throwing here surfaces better-auth's real message (e.g. "User already
+    // exists. Use another email.") in the card's error banner and keeps the
+    // user on the page.
     const handleSignup = async (data: Record<string, string>) => {
         const { data: signUpResponse, error } = await authClient.signUp.email({
-            name: data.name, // required, The name of the user.
-            email: data.email, // required, The email address of the user.
-            password: data.password, // required, The password of the user. It should be at least 8 characters long and max 128 by default.
+            name: data.name,
+            email: data.email,
+            password: data.password,
             role: data.role ?? "seeker", // seeker | recruiter | admin (stored as an additional user field server-side)
-            callbackURL: "/", // An optional URL to redirect to after the user signs up.
+            callbackURL: "/", // where better-auth sends the user after flows like email verification
         } as Parameters<typeof authClient.signUp.email>[0]);
-        console.log('signup response', signUpResponse, error); // signUpResponse contains { token, user } on success
+        console.log('signup response', signUpResponse, error); // { token, user } on success
+        if (error) throw new Error(error.message || "Sign up failed");
     };
 
   return (

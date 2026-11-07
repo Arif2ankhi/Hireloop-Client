@@ -93,10 +93,11 @@ export function AuthCard({
 }: {
   mode: AuthMode
   /** Optional override: when provided, the card only collects the form
-   * fields ({ name?, email, password, remember? }) and calls this handler;
-   * the internal better-auth flow is skipped (errors are then the page's
-   * responsibility). Without it, the built-in auth flow is used. */
-  onSubmit?: (data: Record<string, string>) => Promise<void> | void
+   * fields ({ name?, email, password, remember?, role? }) and calls this
+   * handler; the internal better-auth flow is skipped. Return `false` to
+   * signal a failure (the card shows the error banner and stays put); on
+   * success the card redirects to the home page itself. */
+  onSubmit?: (data: Record<string, string>) => Promise<boolean | void> | boolean | void
 }) {
   const isSignIn = mode === "sign-in"
   const router = useRouter()
@@ -119,34 +120,49 @@ export function AuthCard({
       string,
       string
     >
+    let success = false
     try {
       if (onSubmit) {
-        await onSubmit(data)
-        return
+        // Page-provided handler: it calls better-auth (and should return
+        // `false` to signal failure). On success the card redirects below.
+        const result = await onSubmit(data)
+        if (result !== false) {
+          success = true
+        } else {
+          setAuthError("Authentication failed — check the console for details")
+        }
+      } else {
+        const response = isSignIn
+          ? await authClient.signIn.email({
+              email: String(data.email),
+              password: String(data.password),
+            })
+          : await authClient.signUp.email({
+              name: String(data.name),
+              email: String(data.email),
+              password: String(data.password),
+              role: data.role ?? "seeker",
+            } as Parameters<typeof authClient.signUp.email>[0])
+        console.log(`[${mode}] auth response`, response) // ← token is here
+        if (response.error) {
+          setAuthError(response.error.message ?? "Something went wrong")
+        } else {
+          success = true
+        }
       }
-      const response = isSignIn
-        ? await authClient.signIn.email({
-            email: String(data.email),
-            password: String(data.password),
-          })
-        : await authClient.signUp.email({
-            name: String(data.name),
-            email: String(data.email),
-            password: String(data.password),
-            role: data.role ?? "seeker",
-          } as Parameters<typeof authClient.signUp.email>[0])
-      console.log(`[${mode}] auth response`, response) // ← token is here
-      if (response.error) {
-        setAuthError(response.error.message ?? "Something went wrong")
-        return
+      if (success) {
+        // Dev ergonomics: wait a beat before navigating so the response log
+        // stays readable in the console (DevTools clears logs on navigation
+        // unless "Preserve log" is enabled in the Console settings gear).
+        setTimeout(() => router.push("/"), 1500)
       }
-      // Dev ergonomics: wait a beat before navigating so the response log stays
-      // readable in the console (DevTools clears logs on navigation unless
-      // "Preserve log" is enabled in the Console settings gear).
-      setTimeout(() => router.push("/"), 1500)
     } catch (error) {
       console.error(`[${mode}] auth failed`, error)
-      setAuthError("Something went wrong. Please try again.")
+      setAuthError(
+        error instanceof Error && error.message
+          ? error.message
+          : "Something went wrong. Please try again."
+      )
     } finally {
       setIsSubmitting(false)
     }

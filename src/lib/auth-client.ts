@@ -1,15 +1,13 @@
 import { createAuthClient } from "better-auth/react"
 
-/* Client auth handler. NOTE: this module runs in the browser, where only
-   NEXT_PUBLIC_* env vars are inlined. If no public URL is set, better-auth
-   falls back to same-origin http://localhost:3000/api/auth — correct for dev. */
+/* falls back to same-origin http://localhost:3000/api/auth — correct for dev. */
 export const authClient = createAuthClient({
   baseURL: process.env.NEXT_PUBLIC_BETTER_AUTH_URL,
 })
 
 // The single configured client — the old code created a second client here
 // (createAuthClient() with no baseURL) which caused confusing mismatches.
-export const { signIn, signUp, useSession } = authClient
+export const { signIn, signUp,signOut, useSession } = authClient
 
 // Dev-only: lets you inspect the session/token from the browser console, e.g.
 //   (await authClient.getSession()).data.session.token

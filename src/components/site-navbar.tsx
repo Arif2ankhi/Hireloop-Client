@@ -2,6 +2,7 @@
 
 import * as React from "react"
 import Link from "next/link"
+import { useRouter } from "next/navigation"
 import { MenuIcon } from "lucide-react"
 
 import { Logo } from "@/components/layout/logo"
@@ -16,6 +17,7 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet"
+import { useSession, signOut } from "@/lib/auth-client"
 
 const NAV_LINKS = [
   { label: "Browse Jobs", href: "/browse-jobs" },
@@ -47,6 +49,15 @@ function NavLinks({ className }: { className?: string }) {
 // Figma proportions: the bar spans ~94% of the viewport, so it uses small
 // near-full-bleed side margins instead of the shared content Container.
 export function SiteNavbar() {
+  const router = useRouter()
+  const { data: session } = useSession()
+
+  const handleSignOut = async () => {
+    await signOut()
+    // Re-fetch server components / refresh the page so the navbar resets.
+    router.refresh()
+  }
+
   return (
     <header className="sticky top-0 z-40 px-4 pt-3 sm:px-6 xl:px-10">
       <div>
@@ -60,19 +71,38 @@ export function SiteNavbar() {
 
         {/* Desktop */}
         <div className="hidden items-center gap-5 md:flex">
-          <div className="flex items-center gap-6">
-            <NavLinks />
-            <span className="h-5 w-px bg-white/15" aria-hidden="true" />
-            <Link
-              href="/sign-in"
-              className="text-sm font-medium text-brand-soft transition-[color] hover:text-brand-soft/80"
-            >
-              Sign In
-            </Link>
-          </div>
-          <Button className="h-11 rounded-lg bg-brand px-6 text-sm font-medium text-white hover:bg-brand/90">
-            Get Started
-          </Button>
+          {session?.user ? (
+              <>
+                <span className="text-[#EDEEEF]">Welcome, {session.user.name}</span>
+                <Button
+                  onClick={handleSignOut}
+                  nativeButton={false}
+                  className="h-11 rounded-lg bg-brand px-6 text-sm font-medium text-white hover:bg-brand/90"
+                >
+                  Sign Out
+                </Button>
+              </>
+          ) : (
+              <>
+              <div className="flex items-center gap-6">
+                <NavLinks />
+                <span className="h-5 w-px bg-white/15" aria-hidden="true" />
+                <Link
+                  href="/sign-in"
+                  className="text-sm font-medium text-brand-soft transition-[color] hover:text-brand-soft/80"
+                >
+                  Sign In
+                </Link>
+              </div>
+              <Button
+                render={<Link href="/sign-up" />}
+                nativeButton={false}
+                className="h-11 rounded-lg bg-brand px-6 text-sm font-medium text-white hover:bg-brand/90"
+              >
+                Get Started
+              </Button>
+              </>
+          )}
         </div>
 
         {/* Mobile */}
