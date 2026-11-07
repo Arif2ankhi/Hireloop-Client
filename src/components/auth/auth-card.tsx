@@ -81,6 +81,12 @@ function FormField({
   )
 }
 
+const ROLES = [
+  { value: "seeker", label: "Job Seeker" },
+  { value: "recruiter", label: "Recruiter" },
+  { value: "admin", label: "Admin" },
+]
+
 export function AuthCard({
   mode,
   onSubmit,
@@ -127,13 +133,17 @@ export function AuthCard({
             name: String(data.name),
             email: String(data.email),
             password: String(data.password),
-          })
+            role: data.role ?? "seeker",
+          } as Parameters<typeof authClient.signUp.email>[0])
       console.log(`[${mode}] auth response`, response) // ← token is here
       if (response.error) {
         setAuthError(response.error.message ?? "Something went wrong")
         return
       }
-      router.push("/")
+      // Dev ergonomics: wait a beat before navigating so the response log stays
+      // readable in the console (DevTools clears logs on navigation unless
+      // "Preserve log" is enabled in the Console settings gear).
+      setTimeout(() => router.push("/"), 1500)
     } catch (error) {
       console.error(`[${mode}] auth failed`, error)
       setAuthError("Something went wrong. Please try again.")
@@ -209,14 +219,39 @@ export function AuthCard({
             </p>
           )}
           {!isSignIn && (
-            <FormField
-              label="Full name"
-              name="name"
-              type="text"
-              placeholder="Jane Doe"
-              autoComplete="name"
-              required
-            />
+            <>
+              {/* Role selector (native radios → included in FormData) */}
+              <div className="flex flex-col gap-1.5">
+                <span className="text-sm text-zinc-300">
+                  Joining HireLoop as
+                </span>
+                <div role="radiogroup" className="flex flex-wrap gap-2">
+                  {ROLES.map((role, index) => (
+                    <label key={role.value} className="cursor-pointer">
+                      <input
+                        type="radio"
+                        name="role"
+                        value={role.value}
+                        defaultChecked={index === 0}
+                        className="peer sr-only"
+                      />
+                      <span className="inline-flex items-center rounded-full border border-white/10 bg-[#141418] px-3.5 py-2 text-sm text-zinc-300 transition-colors peer-focus-visible:ring-3 peer-focus-visible:ring-ring/50 peer-checked:border-brand peer-checked:bg-brand/15 peer-checked:text-white hover:text-white">
+                        {role.label}
+                      </span>
+                    </label>
+                  ))}
+                </div>
+              </div>
+
+              <FormField
+                label="Full name"
+                name="name"
+                type="text"
+                placeholder="Jane Doe"
+                autoComplete="name"
+                required
+              />
+            </>
           )}
 
           <FormField

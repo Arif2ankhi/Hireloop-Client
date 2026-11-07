@@ -10,3 +10,10 @@ export const authClient = createAuthClient({
 // The single configured client — the old code created a second client here
 // (createAuthClient() with no baseURL) which caused confusing mismatches.
 export const { signIn, signUp, useSession } = authClient
+
+// Dev-only: lets you inspect the session/token from the browser console, e.g.
+//   (await authClient.getSession()).data.session.token
+// Not exposed in production builds.
+if (typeof window !== "undefined" && process.env.NODE_ENV !== "production") {
+  ;(window as unknown as Record<string, unknown>).authClient = authClient
+}

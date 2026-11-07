@@ -6,7 +6,21 @@ const client = new MongoClient(process.env.BETTER_AUTH_DB_URI as string);
 const db = client.db("hireloopdb");
 
 export const auth = betterAuth({
-    
+  user: {
+    additionalFields: {
+      role: {
+        type: "string",
+        defaultValue: "seeker",
+        // input: true lets the client pass role on sign-up.
+        // SECURITY NOTE: with input: true anyone can register as "admin".
+        // Before production, remove the admin option from the form and either
+        // set input: false (admin assigned via DB only) or add validation.
+        input: true,
+        required: false,
+      },
+    },
+  },
+
   emailAndPassword: {
     enabled: true
   },

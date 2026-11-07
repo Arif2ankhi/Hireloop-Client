@@ -9,8 +9,9 @@ export default function SignUpPage() {
             name: data.name, // required, The name of the user.
             email: data.email, // required, The email address of the user.
             password: data.password, // required, The password of the user. It should be at least 8 characters long and max 128 by default.
+            role: data.role ?? "seeker", // seeker | recruiter | admin (stored as an additional user field server-side)
             callbackURL: "/", // An optional URL to redirect to after the user signs up.
-        });
+        } as Parameters<typeof authClient.signUp.email>[0]);
         console.log('signup response', signUpResponse, error); // signUpResponse contains { token, user } on success
     };
 
