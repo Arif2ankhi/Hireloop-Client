@@ -1,11 +1,11 @@
 "use client"
 
 import * as React from "react"
-import Image from "next/image"
 import Link from "next/link"
 import { MenuIcon } from "lucide-react"
 
-import logoSrc from "../../public/images/logo.png"
+import { Logo } from "@/components/layout/logo"
+
 import { cn } from "cn"
 import { Button } from "@/components/ui/button"
 import {
@@ -23,24 +23,7 @@ const NAV_LINKS = [
   { label: "Pricing", href: "/pricing" },
 ] as const
 
-/**
- * Official "hireloop" wordmark (public/images/logo.png, 154x44).
- * Rendered at 2x the intrinsic size for crisp display on all screens.
- */
-export function Logo({ className }: React.ComponentProps<"span">) {
-  return (
-    <span className={cn("inline-flex items-center", className)}>
-      <Image
-        src={logoSrc}
-        alt="HireLoop"
-        priority
-        width={160}
-        height={44}
-        className="h-8 w-auto sm:h-9"
-      />
-    </span>
-  )
-}
+export { Logo }
 
 function NavLinks({ className }: { className?: string }) {
   return (
@@ -61,20 +44,23 @@ function NavLinks({ className }: { className?: string }) {
   )
 }
 
+// Figma proportions: the bar spans ~94% of the viewport, so it uses small
+// near-full-bleed side margins instead of the shared content Container.
 export function SiteNavbar() {
   return (
-    <header className="sticky top-0 z-40 px-3 pt-3 sm:px-4 sm:pt-4">
-      <nav
-        aria-label="Main"
-        className="flex h-14 items-center justify-between rounded-full bg-[#1b1b1f] pr-2 pl-5 sm:h-16 sm:pl-7"
-      >
+    <header className="sticky top-0 z-40 px-4 pt-3 sm:px-6 xl:px-10">
+      <div>
+        <nav
+          aria-label="Main"
+          className="flex h-14 w-full items-center justify-between rounded-2xl bg-[#1b1b1f] pr-2 pl-4 sm:h-16 sm:pl-6"
+        >
         <Link href="/" aria-label="HireLoop home">
           <Logo />
         </Link>
 
         {/* Desktop */}
-        <div className="hidden items-center gap-8 md:flex">
-          <div className="flex items-center gap-8">
+        <div className="hidden items-center gap-5 md:flex">
+          <div className="flex items-center gap-6">
             <NavLinks />
             <span className="h-5 w-px bg-white/15" aria-hidden="true" />
             <Link
@@ -84,7 +70,7 @@ export function SiteNavbar() {
               Sign In
             </Link>
           </div>
-          <Button className="h-10 rounded-xl bg-brand px-5 text-sm font-medium text-white hover:bg-brand/90">
+          <Button className="h-11 rounded-lg bg-brand px-6 text-sm font-medium text-white hover:bg-brand/90">
             Get Started
           </Button>
         </div>
@@ -142,7 +128,8 @@ export function SiteNavbar() {
             </div>
           </SheetContent>
         </Sheet>
-      </nav>
+        </nav>
+      </div>
     </header>
   )
 }

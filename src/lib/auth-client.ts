@@ -1,7 +1,12 @@
 import { createAuthClient } from "better-auth/react"
+
+/* Client auth handler. NOTE: this module runs in the browser, where only
+   NEXT_PUBLIC_* env vars are inlined. If no public URL is set, better-auth
+   falls back to same-origin http://localhost:3000/api/auth — correct for dev. */
 export const authClient = createAuthClient({
-    /** The base URL of the server (optional if you're using the same domain) */
-     baseURL: process.env.BETTER_AUTH_URL, 
+  baseURL: process.env.NEXT_PUBLIC_BETTER_AUTH_URL,
 })
 
-export const { signIn, signUp, useSession } = createAuthClient()
+// The single configured client — the old code created a second client here
+// (createAuthClient() with no baseURL) which caused confusing mismatches.
+export const { signIn, signUp, useSession } = authClient
