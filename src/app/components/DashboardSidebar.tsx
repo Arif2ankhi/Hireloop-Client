@@ -5,7 +5,6 @@ import {
   SidebarContent,
   SidebarFooter,
   SidebarGroup,
-  SidebarGroupLabel,
   SidebarHeader,
   SidebarMenu,
   SidebarMenuButton,
@@ -20,15 +19,14 @@ import {
   Building2,
   CreditCard,
   FileText,
-  House,
   LayoutDashboard,
   type LucideIcon,
-  Search,
   Settings,
   Users,
   Wallet,
   Briefcase,
   LogOut,
+  PlusCircle,
 } from "lucide-react";
 import Link from "next/link";
 
@@ -41,27 +39,14 @@ type MenuItem = {
   icon: LucideIcon;
 };
 
-/** Links every role can see (public pages), per requirements sidebar spec. */
-const publicLinks: MenuItem[] = [
-  { id: "public-home", name: "Home", url: "/", icon: House },
-  { id: "public-jobs", name: "Browse Jobs", url: "/browse-jobs", icon: Search },
-  {
-    id: "public-companies",
-    name: "Companies",
-    url: "/companies",
-    icon: Building2,
-  },
-  { id: "public-pricing", name: "Pricing", url: "/pricing", icon: Wallet },
-];
-
 const menuItemsByRole: Record<UserRole, MenuItem[]> = {
   seeker: [
-    { id: "home", name: "Home", url: "/dashboard/seeker", icon: LayoutDashboard },
+    { id: "dashboard", name: "Dashboard", url: "/dashboard/seeker", icon: LayoutDashboard },
     {
       id: "jobs",
-      name: "Browse & Apply",
+      name: "Jobs",
       url: "/dashboard/seeker/jobs",
-      icon: Search,
+      icon: PlusCircle,
     },
     {
       id: "saved",
@@ -77,7 +62,7 @@ const menuItemsByRole: Record<UserRole, MenuItem[]> = {
     },
     {
       id: "billing",
-      name: "Subscription & Billing",
+      name: "Billing",
       url: "/dashboard/seeker/billing",
       icon: CreditCard,
     },
@@ -91,28 +76,34 @@ const menuItemsByRole: Record<UserRole, MenuItem[]> = {
 
   recruiter: [
     {
-      id: "home",
-      name: "Home",
+      id: "dashboard",
+      name: "Dashboard",
       url: "/dashboard/recruiter",
       icon: LayoutDashboard,
     },
     {
-      id: "company",
+      id: "my-company",
       name: "My Company",
-      url: "/dashboard/recruiter/company",
+      url: "/dashboard/my-company",
       icon: Building2,
     },
     {
-      id: "jobs",
+      id: "manage-jobs",
       name: "Manage Jobs",
       url: "/dashboard/recruiter/jobs",
       icon: Briefcase,
     },
+     {
+      id: "add-jobs",
+      name: "Add Job",
+      url: "/dashboard/recruiter/jobs/new",
+      icon: PlusCircle,
+    },
     {
-      id: "billing",
-      name: "Subscription & Billing",
-      url: "/dashboard/recruiter/billing",
-      icon: CreditCard,
+      id: "applications",
+      name: "Applications",
+      url: "/dashboard/recruiter/applications",
+      icon: FileText,
     },
     {
       id: "settings",
@@ -123,28 +114,33 @@ const menuItemsByRole: Record<UserRole, MenuItem[]> = {
   ],
 
   admin: [
-    { id: "home", name: "Home", url: "/dashboard/admin", icon: LayoutDashboard },
+    {
+      id: "dashboard",
+      name: "Dashboard",
+      url: "/dashboard/admin",
+      icon: LayoutDashboard,
+    },
     {
       id: "users",
-      name: "Manage Users",
+      name: "Users",
       url: "/dashboard/admin/users",
       icon: Users,
     },
     {
       id: "companies",
-      name: "Manage Companies",
+      name: "Companies",
       url: "/dashboard/admin/companies",
       icon: Building2,
     },
     {
       id: "jobs",
-      name: "Manage Jobs",
+      name: "Jobs",
       url: "/dashboard/admin/jobs",
       icon: Briefcase,
     },
     {
       id: "payments",
-      name: "Payment & Subscriptions",
+      name: "Payments",
       url: "/dashboard/admin/payments",
       icon: Wallet,
     },
@@ -212,14 +208,7 @@ export function DashboardSidebar() {
       <SidebarContent>
         {/* Role-based navigation */}
         <SidebarGroup>
-          <SidebarGroupLabel>{role ? `${role} menu` : "Menu"}</SidebarGroupLabel>
           {role ? <MenuList items={menuItemsByRole[role]} /> : null}
-        </SidebarGroup>
-
-        {/* Public pages, available from the dashboard too */}
-        <SidebarGroup>
-          <SidebarGroupLabel>Explore</SidebarGroupLabel>
-          <MenuList items={publicLinks} />
         </SidebarGroup>
       </SidebarContent>
 

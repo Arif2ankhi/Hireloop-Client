@@ -3,7 +3,7 @@ import React from 'react';
 const RecruiterDashboardPage = () => {
     return (
         <div>
-                <h2>Recruiter refresh page</h2>
+                <h2>Recruiter Dasboard page</h2>
         </div>
     );
 };
