@@ -89,7 +89,7 @@ export default function NewJobPage() {
   }
 
   return (
-    <div className="dark min-h-screen bg-[#0b0b0f] p-6 text-white">
+    <div className="dark min-h-screen bg-[#0b0b0f] p-4 text-white sm:p-6">
       <div className="mx-auto flex max-w-3xl flex-col gap-6">
         {/* Header */}
         <div>
@@ -111,7 +111,7 @@ export default function NewJobPage() {
 
         <form onSubmit={handleSubmit} className="flex flex-col gap-6">
           {/* 1. Basic Information */}
-          <section className="flex flex-col gap-5 rounded-xl bg-[#131317] p-6">
+          <section className="flex flex-col gap-5 rounded-xl bg-[#131317] p-4 sm:p-6">
             <SectionHeading>1. Basic Information</SectionHeading>
 
             {/* Job Title */}
@@ -190,7 +190,7 @@ export default function NewJobPage() {
           </section>
 
           {/* 2. Location, Compensation & Timeline */}
-          <section className="flex flex-col gap-5 rounded-xl bg-[#131317] p-6">
+          <section className="flex flex-col gap-5 rounded-xl bg-[#131317] p-4 sm:p-6">
             <SectionHeading>2. Location, Compensation &amp; Timeline</SectionHeading>
 
             {/* Remote toggle card (native checkbox → `isRemote` in FormData) */}
@@ -300,7 +300,7 @@ export default function NewJobPage() {
           </section>
 
           {/* 3. Responsibilities & Requirements */}
-          <section className="flex flex-col gap-5 rounded-xl bg-[#131317] p-6">
+          <section className="flex flex-col gap-5 rounded-xl bg-[#131317] p-4 sm:p-6">
             <SectionHeading>3. Responsibilities &amp; Requirements</SectionHeading>
 
             <div className="flex flex-col gap-1.5">

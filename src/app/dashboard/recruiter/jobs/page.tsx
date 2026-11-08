@@ -7,8 +7,6 @@ import {
   PinIcon,
   PlusIcon,
   ServerCogIcon,
-  EllipsisVerticalIcon,
-  Trash2Icon,
   UserRoundIcon,
   UsersRoundIcon,
   PencilIcon,
@@ -25,24 +23,10 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import type { JobInput } from "@/lib/actions/jobs";
+import { DeleteJobDialog } from "@/components/jobs/delete-job-dialog";
+import { ViewJobDialog } from "@/components/jobs/view-job-dialog";
+import type { JobPostRow } from "@/components/jobs/types";
 import { getJobs } from "@/lib/api/jobs";
-
-/**
- * Posts shown in the manage-jobs table. The base fields mirror exactly what
- * the New Job form collects (JobInput = FormData → plain record); the extra
- * fields (applicants, status, postedAt) are display-only for now.
- */
-type JobPostRow = JobInput & {
-  id?: string;
-  /** MongoDB documents come with `_id` (the form's local `id` is optional) */
-  _id?: string;
-  /** kept as string on purpose — FormData only yields strings */
-  applicants?: string;
-  status?: "Active" | "Expired";
-  /** Human representation already stored per row for the mock. */
-  postedAt?: string;
-};
 
 const DEPT_ICONS: Record<string, LucideIcon> = {
   "Engineering & Tech": Code2Icon,
@@ -79,10 +63,10 @@ export default async function RecruiterJobsPage() {
   // GET /jobs (your Express backend at localhost:5000) — returns the array of
   // stored job posts. Swap the dummy rows for this once the API is live.
   const jobs = ((await getJobs()) ?? []) as JobPostRow[];
-  console.log("Jobs data", jobs);
+//   console.log("Jobs data", jobs);
 
   return (
-    <div className="dark min-h-screen bg-[#0b0b0f] p-6 text-white">
+    <div className="dark min-h-screen bg-[#0b0b0f] p-4 text-white sm:p-6">
       <div className="flex flex-col gap-6">
         {/* Header */}
         <div className="flex flex-wrap items-end justify-between gap-4">
@@ -235,33 +219,32 @@ export default async function RecruiterJobsPage() {
                       ) : null}
                     </TableCell>
 
-                    {/* Actions */}
+                    {/* Actions: View → Update → Delete */}
                     <TableCell className="text-right">
-                      <div className="flex items-center justify-end gap-1.5">
+                      <div className="flex items-center justify-end gap-1">
+                        <ViewJobDialog job={job} />
                         <Button
                           variant="outline"
                           size="sm"
+                          render={
+                            <Link
+                              href={`/dashboard/recruiter/jobs/new?edit=${encodeURIComponent(
+                                job._id ?? job.id ?? ""
+                              )}`}
+                            />
+                          }
+                          nativeButton={false}
                           className="h-8 rounded-lg border-brand/40 bg-brand/15 px-3 text-xs text-white hover:bg-brand/25"
                         >
                           <PencilIcon className="size-3.5" />
                           Update
                         </Button>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          title={`Delete "${job.title}"`}
-                          className="size-8 rounded-lg text-zinc-500 hover:bg-white/5 hover:text-red-400"
-                        >
-                          <Trash2Icon className="size-4" />
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          title="More actions"
-                          className="size-8 rounded-lg text-zinc-500 hover:bg-white/5 hover:text-white"
-                        >
-                          <EllipsisVerticalIcon className="size-4" />
-                        </Button>
+                        {job._id || job.id ? (
+                          <DeleteJobDialog
+                            jobId={(job._id ?? job.id) as string}
+                            jobTitle={job.title}
+                          />
+                        ) : null}
                       </div>
                     </TableCell>
                   </TableRow>
