@@ -15,6 +15,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { NativeSelect, NativeSelectOption } from "@/components/ui/native-select";
 import { Textarea } from "@/components/ui/textarea";
+import { createJob } from "@/lib/actions/jobs";
 
 const JOB_TYPES = ["Full-time", "Part-time", "Contract", "Internship"] as const;
 
@@ -70,7 +71,7 @@ export default function NewJobPage() {
   const [, setIsRemote] = React.useState(false);
   const [submitted, setSubmitted] = React.useState(false);
 
-  function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
+  const  handleSubmit = async(event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     const form = event.currentTarget;
     const data = Object.fromEntries(new FormData(form)) as Record<string, string>;
@@ -87,12 +88,18 @@ export default function NewJobPage() {
     //     headers:{
     //         "Content-Type": "application/json",
     //     },
-    //     body:JSON.stringify(data)
-
+    //     body:JSON.stringify(jobData)
+ 
     // })
     // .then((response) =>{
 
     // })
+
+
+    // New way to fetch data  from lib/actions.ts
+
+    const result = await createJob(data)
+    console.log('createdJob result:', result);
 
   }
 
