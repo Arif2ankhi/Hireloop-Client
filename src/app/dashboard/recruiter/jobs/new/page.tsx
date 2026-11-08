@@ -81,21 +81,6 @@ export default function NewJobPage() {
     form.reset();
     setIsRemote(false);
 
-    // data fetching old style
-
-    // fetch("http://localhost:5000/jobs", {
-    //     method: "POST",
-    //     headers:{
-    //         "Content-Type": "application/json",
-    //     },
-    //     body:JSON.stringify(jobData)
- 
-    // })
-    // .then((response) =>{
-
-    // })
-
-
     // New way to fetch data  from lib/actions.ts
 
     const result = await createJob(data)

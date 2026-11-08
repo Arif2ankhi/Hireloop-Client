@@ -26,6 +26,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import type { JobInput } from "@/lib/actions/jobs";
+import { getJobs } from "@/lib/api/jobs";
 
 /**
  * Posts shown in the manage-jobs table. The base fields mirror exactly what
@@ -33,12 +34,14 @@ import type { JobInput } from "@/lib/actions/jobs";
  * fields (applicants, status, postedAt) are display-only for now.
  */
 type JobPostRow = JobInput & {
-  id: string;
+  id?: string;
+  /** MongoDB documents come with `_id` (the form's local `id` is optional) */
+  _id?: string;
   /** kept as string on purpose — FormData only yields strings */
-  applicants: string;
-  status: "Active" | "Expired";
+  applicants?: string;
+  status?: "Active" | "Expired";
   /** Human representation already stored per row for the mock. */
-  postedAt: string;
+  postedAt?: string;
 };
 
 const DEPT_ICONS: Record<string, LucideIcon> = {
@@ -49,95 +52,6 @@ const DEPT_ICONS: Record<string, LucideIcon> = {
   Quality: BadgeCheckIcon,
 };
 
-// Dummy data so the table is viewable while the real API has no GET route
-// yet — field names match what the New Job form submits.
-const DUMMY_JOB_POSTS: JobPostRow[] = [
-  {
-    id: "1",
-    title: "Frontend Developer",
-    companyName: "HirePulse Network",
-    category: "Engineering & Tech",
-    type: "Full-time",
-    currency: "EUR",
-    salaryMin: "25",
-    salaryMax: "40",
-    frequency: "per hour",
-    location: "New York, USA",
-    isRemote: "on",
-    deadline: "2025-05-30",
-    applicants: "34",
-    status: "Active",
-    postedAt: "Posted 4d ago",
-  },
-  {
-    id: "2",
-    title: "Senior Product Designer",
-    companyName: "HirePulse Labs",
-    category: "Design",
-    type: "Full-time",
-    currency: "GBP",
-    salaryMin: "90",
-    salaryMax: "115",
-    frequency: "per hour",
-    location: "London, UK",
-    isRemote: "on",
-    deadline: "2025-06-14",
-    applicants: "19",
-    status: "Active",
-    postedAt: "Posted 1w ago",
-  },
-  {
-    id: "3",
-    title: "DevOps Specialist",
-    companyName: "HirePulse Platform",
-    category: "Infrastructure & Tech",
-    type: "Full-time",
-    currency: "EUR",
-    salaryMin: "95",
-    salaryMax: "120",
-    frequency: "per hour",
-    location: "Berlin, Germany",
-    isRemote: "",
-    deadline: "2025-06-30",
-    applicants: "12",
-    status: "Active",
-    postedAt: "Posted 1w ago",
-  },
-  {
-    id: "4",
-    title: "Product Marketing Lead",
-    companyName: "HirePulse Network",
-    category: "Marketing",
-    type: "Full-time",
-    currency: "EUR",
-    salaryMin: "80",
-    salaryMax: "105",
-    frequency: "per hour",
-    location: "Remote (EU/US)",
-    isRemote: "on",
-    deadline: "2025-07-15",
-    applicants: "27",
-    status: "Active",
-    postedAt: "Posted 5d ago",
-  },
-  {
-    id: "5",
-    title: "QA Automation Engineer",
-    companyName: "HirePulse Platform",
-    category: "Quality",
-    type: "Part-time",
-    currency: "EUR",
-    salaryMin: "35",
-    salaryMax: "55",
-    frequency: "per hour",
-    location: "Dublin, Ireland",
-    isRemote: "on",
-    deadline: "2025-05-01",
-    applicants: "8",
-    status: "Expired",
-    postedAt: "Closed",
-  },
-];
 
 const CURRENCY_SYMBOLS: Record<string, string> = {
   EUR: "€",
@@ -161,8 +75,11 @@ function formatFrequency(frequency: string) {
   return ` / ${frequency.replace(/^per /, "")}`;
 }
 
-export default function ManageJobsPage() {
-  const jobPosts = DUMMY_JOB_POSTS;
+export default async function RecruiterJobsPage() {
+  // GET /jobs (your Express backend at localhost:5000) — returns the array of
+  // stored job posts. Swap the dummy rows for this once the API is live.
+  const jobs = ((await getJobs()) ?? []) as JobPostRow[];
+  console.log("Jobs data", jobs);
 
   return (
     <div className="dark min-h-screen bg-[#0b0b0f] p-6 text-white">
@@ -230,13 +147,15 @@ export default function ManageJobsPage() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {jobPosts.map((post) => {
-                const DeptIcon = DEPT_ICONS[post.category] ?? Code2Icon;
-                const symbol = CURRENCY_SYMBOLS[post.currency] ?? post.currency;
+              {jobs.map((job) => {
+                const DeptIcon = DEPT_ICONS[job.category] ?? Code2Icon;
+                const symbol = CURRENCY_SYMBOLS[job.currency] ?? job.currency;
+                const status = job.status ?? "Active";
+                const applicants = job.applicants ?? "0";
 
                 return (
                   <TableRow
-                    key={post.id}
+                    key={job._id}
                     className="border-b border-white/5 last:border-b-0 hover:bg-white/[0.02]"
                   >
                     {/* Title & dept */}
@@ -247,10 +166,10 @@ export default function ManageJobsPage() {
                         </span>
                         <div>
                           <p className="text-sm font-medium text-white">
-                            {post.title}
+                            {job.title}
                           </p>
                           <p className="text-xs text-brand-soft/90">
-                            {post.category}
+                            {job.category}
                           </p>
                         </div>
                       </div>
@@ -258,35 +177,35 @@ export default function ManageJobsPage() {
 
                     {/* Company & location */}
                     <TableCell>
-                      <p className="text-sm text-white">{post.companyName}</p>
+                      <p className="text-sm text-white">{job.companyName}</p>
                       <p className="flex items-center gap-1 text-xs text-zinc-500">
                         <PinIcon className="size-3" />
-                        {post.location}
+                        {job.location}
                       </p>
                     </TableCell>
 
                     {/* Type */}
                     <TableCell>
                       <span className="inline-flex rounded-md bg-[#1a1a20] px-2.5 py-1 text-xs text-zinc-300">
-                        {post.type}
+                        {job.type}
                       </span>
                     </TableCell>
 
                     {/* Compensation */}
                     <TableCell className="text-sm text-zinc-300">
-                      {symbol} {post.salaryMin} – {symbol} {post.salaryMax}
-                      {formatFrequency(post.frequency)}
+                      {symbol} {job.salaryMin} – {symbol} {job.salaryMax}
+                      {formatFrequency(job.frequency)}
                     </TableCell>
 
                     {/* Applicants */}
                     <TableCell>
                       <span className="flex items-center gap-1.5 text-sm text-brand-soft/90">
-                        {Number(post.applicants) === 1 ? (
+                        {Number(applicants) === 1 ? (
                           <UserRoundIcon className="size-4" />
                         ) : (
                           <UsersRoundIcon className="size-4" />
                         )}
-                        {post.applicants} Candidates
+                        {applicants} Candidates
                       </span>
                     </TableCell>
 
@@ -295,23 +214,25 @@ export default function ManageJobsPage() {
                       <Badge
                         variant="outline"
                         className={
-                          post.status === "Active"
+                          status === "Active"
                             ? "rounded-full border-emerald-400/30 bg-emerald-400/10 px-3 py-1 text-xs font-medium text-emerald-300 [&>span]:bg-emerald-300"
                             : "rounded-full border-zinc-500/30 bg-zinc-500/10 px-3 py-1 text-xs font-medium text-zinc-400 [&>span]:bg-zinc-400"
                         }
                       >
                         {/* dot indicator */}
                         <span className="size-1.5 rounded-full" />
-                        {post.status}
+                        {status}
                       </Badge>
                     </TableCell>
 
                     {/* Deadline */}
                     <TableCell>
                       <p className="text-sm text-white">
-                        {formatDeadline(post.deadline)}
+                        {job.deadline ? formatDeadline(job.deadline) : "—"}
                       </p>
-                      <p className="text-xs text-zinc-500">{post.postedAt}</p>
+                      {job.postedAt ? (
+                        <p className="text-xs text-zinc-500">{job.postedAt}</p>
+                      ) : null}
                     </TableCell>
 
                     {/* Actions */}
@@ -328,7 +249,7 @@ export default function ManageJobsPage() {
                         <Button
                           variant="ghost"
                           size="icon"
-                          title={`Delete "${post.title}"`}
+                          title={`Delete "${job.title}"`}
                           className="size-8 rounded-lg text-zinc-500 hover:bg-white/5 hover:text-red-400"
                         >
                           <Trash2Icon className="size-4" />
