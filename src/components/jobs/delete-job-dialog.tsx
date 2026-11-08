@@ -15,6 +15,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { deleteJob } from "@/lib/api/jobs";
+import { toast } from "../ui/toast";
 
 /**
  * Trash icon trigger + destructive confirmation dialog for one job post.
@@ -27,17 +28,25 @@ export function DeleteJobDialog({
   jobId: string;
   jobTitle: string;
 }) {
-  const router = useRouter();
+  const router = useRouter(); // Router for page refresh 
+  
   const [open, setOpen] = React.useState(false);
   const [deleting, setDeleting] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
 
   async function handleDelete() {
+    // const res = await deleteJob(jobId)
+    // console.log('Deleting', jobId, res);
+
     setDeleting(true);
     setError(null);
     try {
       await deleteJob(jobId);
       setOpen(false);
+      toast.add({
+        title:"Job Deleted",
+        description:"This job has been permanently deleted."
+      })
       // Re-run the server component so the removed row disappears.
       router.refresh();
     } catch (err) {
