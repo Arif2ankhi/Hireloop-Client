@@ -1,9 +1,9 @@
-const BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:5000"
+import { API_BASE_URL } from "@/lib/api/config";
 
 export const getJobs = async () => {
     try {
         // 3s cap so a stopped backend can't hang the page render.
-        const res = await fetch(`${BASE_URL}/jobs`, {
+        const res = await fetch(`${API_BASE_URL}/jobs`, {
             signal: AbortSignal.timeout(3000),
         })
 
@@ -21,7 +21,7 @@ export const getJobs = async () => {
 }
 
 export const deleteJob = async (id: string) => {
-    const res = await fetch(`${BASE_URL}/jobs/${id}`, {
+    const res = await fetch(`${API_BASE_URL}/jobs/${id}`, {
         method: "DELETE",
         signal: AbortSignal.timeout(5000),
     })

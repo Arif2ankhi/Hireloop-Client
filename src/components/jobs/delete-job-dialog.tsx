@@ -44,8 +44,8 @@ export function DeleteJobDialog({
       await deleteJob(jobId);
       setOpen(false);
       toast.add({
-        title:"Job Deleted",
-        description:"This job has been permanently deleted."
+        title: "Job Deleted",
+        description: "This job has been permanently deleted.",
       })
       // Re-run the server component so the removed row disappears.
       router.refresh();

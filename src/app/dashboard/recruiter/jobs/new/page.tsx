@@ -1,7 +1,6 @@
 "use client";
 
 import * as React from "react";
-import Link from "next/link";
 import {
   ArrowRight,
   Building2,
@@ -11,11 +10,17 @@ import {
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { NativeSelect, NativeSelectOption } from "@/components/ui/native-select";
-import { Textarea } from "@/components/ui/textarea";
+import {
+  FieldLabel,
+  SectionHeading,
+  SelectField,
+  TextField,
+  TextareaField,
+} from "@/components/jobs/form-fields";
+import { DarkPage, PageHeader } from "@/components/layout/page";
 import { createJob } from "@/lib/actions/jobs";
+import { toast } from "@/components/ui/toast";
+import { useRouter } from "next/navigation";
 
 const JOB_TYPES = ["Full-time", "Part-time", "Contract", "Internship"] as const;
 
@@ -30,46 +35,13 @@ const CATEGORIES = [
 
 const FREQUENCIES = ["per hour", "per day", "per month", "per year"] as const;
 
-/** Shared bits */
-function SectionHeading({ children }: { children: string }) {
-  return (
-    <h2 className="flex items-center gap-2 text-base font-semibold text-white">
-      <span className="size-1.5 rounded-full bg-brand" aria-hidden="true" />
-      {children}
-    </h2>
-  );
-}
-
-function FieldLabel({
-  htmlFor,
-  requiredHint,
-  children,
-}: {
-  htmlFor: string;
-  requiredHint?: string;
-  children: React.ReactNode;
-}) {
-  return (
-    <div className="flex items-center justify-between">
-      <Label
-        htmlFor={htmlFor}
-        className="text-sm font-medium text-zinc-300 [&_span]:ml-0.5"
-      >
-        {children}
-        <span className="text-brand">*</span>
-      </Label>
-      {requiredHint ? (
-        <span className="text-xs text-zinc-500">{requiredHint}</span>
-      ) : null}
-    </div>
-  );
-}
-
 export default function NewJobPage() {
   // The remote toggle only records the flag in FormData — the location field
   // is always enabled now, so only the setter is needed for the reset below.
   const [, setIsRemote] = React.useState(false);
   const [submitted, setSubmitted] = React.useState(false);
+
+  const router = useRouter();
 
   const  handleSubmit = async(event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -77,6 +49,11 @@ export default function NewJobPage() {
     const data = Object.fromEntries(new FormData(form)) as Record<string, string>;
     // TODO: POST this object to /api/jobs once the backend exists.
     console.log("new job", data);
+    toast.add({
+      title: "Job Created",
+      description: "This job has been added Successfully.",
+    });
+    router.push('/dashboard/recruiter/jobs')
     setSubmitted(true);
     form.reset();
     setIsRemote(false);
@@ -89,78 +66,50 @@ export default function NewJobPage() {
   }
 
   return (
-    <div className="dark min-h-screen bg-[#0b0b0f] p-4 text-white sm:p-6">
-      <div className="mx-auto flex max-w-3xl flex-col gap-6">
-        {/* Header */}
-        <div>
-          <p className="text-xs text-zinc-500">
-            <Link href="/dashboard/recruiter/jobs" className="hover:text-zinc-300">
-              Manage Jobs
-            </Link>
-            <span className="mx-1.5">›</span>
-            <span className="text-zinc-300">Create New Listing</span>
-          </p>
-          <h1 className="mt-2 text-2xl font-semibold tracking-tight text-white">
-            Post a New Job
-          </h1>
-          <p className="mt-1 text-sm text-muted-foreground">
-            Fill in the position specifications to attract qualified talent
-            across our network.
-          </p>
-        </div>
+    <DarkPage>
+      <div className="mx-auto flex w-full max-w-5xl flex-col gap-6">
+        <PageHeader
+          items={[
+            { label: "Manage Jobs", href: "/dashboard/recruiter/jobs" },
+            { label: "Create New Listing" },
+          ]}
+          title="Post a New Job"
+          description="Fill in the position specifications to attract qualified talent across our network."
+        />
 
         <form onSubmit={handleSubmit} className="flex flex-col gap-6">
           {/* 1. Basic Information */}
           <section className="flex flex-col gap-5 rounded-xl bg-[#131317] p-4 sm:p-6">
             <SectionHeading>1. Basic Information</SectionHeading>
 
-            {/* Job Title */}
-            <div className="flex flex-col gap-1.5">
-              <FieldLabel htmlFor="title">Job Title</FieldLabel>
-              <Input
-                id="title"
-                name="title"
-                placeholder="Frontend Developer"
-                className="border-white/10 bg-[#1a1a20] text-white placeholder:text-zinc-500"
-                required
-              />
-            </div>
+            <TextField
+              id="title"
+              name="title"
+              label="Job Title"
+              placeholder="Frontend Developer"
+              required
+            />
 
             {/* Company Name + Job Category */}
             <div className="grid gap-5 sm:grid-cols-2">
-              <div className="flex flex-col gap-1.5">
-                <FieldLabel htmlFor="companyName">Company Name</FieldLabel>
-                <div className="relative">
-                  <Building2 className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-zinc-500" />
-                  <Input
-                    id="companyName"
-                    name="companyName"
-                    placeholder="HirePulse Network"
-                    className="border-white/10 bg-[#1a1a20] pl-9 text-white placeholder:text-zinc-500"
-                    required
-                  />
-                </div>
-              </div>
+              <TextField
+                id="companyName"
+                name="companyName"
+                label="Company Name"
+                icon={Building2}
+                placeholder="HirePulse Network"
+                required
+              />
 
-              <div className="flex flex-col gap-1.5">
-                <FieldLabel htmlFor="category">Job Category</FieldLabel>
-                <NativeSelect
-                  id="category"
-                  name="category"
-                  defaultValue=""
-                  className="w-full"
-                  required
-                >
-                  <NativeSelectOption value="" disabled>
-                    Select a category
-                  </NativeSelectOption>
-                  {CATEGORIES.map((category) => (
-                    <NativeSelectOption key={category} value={category}>
-                      {category}
-                    </NativeSelectOption>
-                  ))}
-                </NativeSelect>
-              </div>
+              <SelectField
+                id="category"
+                name="category"
+                label="Job Category"
+                options={CATEGORIES}
+                placeholder="Select a category"
+                defaultValue=""
+                required
+              />
             </div>
 
             {/* Job Type chips (native radios → `type` rides in FormData) */}
@@ -220,82 +169,54 @@ export default function NewJobPage() {
 
             {/* Location + Deadline */}
             <div className="grid gap-5 sm:grid-cols-2">
-              <div className="flex flex-col gap-1.5">
-                <FieldLabel htmlFor="location" requiredHint="Optional">
-                  Job Location (location)
-                </FieldLabel>
-                <div className="relative">
-                  <MapPinIcon className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-zinc-500" />
-                  <Input
-                    id="location"
-                    name="location"
-                    placeholder="New York, USA"
-                    className="border-white/10 bg-[#1a1a20] pl-9 text-white placeholder:text-zinc-500"
-                  />
-                </div>
-              </div>
+              <TextField
+                id="location"
+                name="location"
+                label="Job Location (location)"
+                requiredHint="Optional"
+                icon={MapPinIcon}
+                placeholder="New York, USA"
+              />
 
-              <div className="flex flex-col gap-1.5">
-                <FieldLabel htmlFor="deadline">Application Deadline (deadline)</FieldLabel>
-                <div className="relative">
-                  <CalendarIcon className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-zinc-500" />
-                  <Input
-                    id="deadline"
-                    name="deadline"
-                    type="date"
-                    className="border-white/10 bg-[#1a1a20] pl-9 pr-2 text-white [color-scheme:dark]"
-                    required
-                  />
-                </div>
-              </div>
+              <TextField
+                id="deadline"
+                name="deadline"
+                label="Application Deadline (deadline)"
+                icon={CalendarIcon}
+                type="date"
+                className="pr-2 [color-scheme:dark]"
+                required
+              />
             </div>
 
             {/* Salary + Frequency */}
             <div className="grid gap-5 sm:grid-cols-3">
-              <div className="flex flex-col gap-1.5">
-                <FieldLabel htmlFor="salaryMin">Min Salary / Rate</FieldLabel>
-                <Input
-                  id="salaryMin"
-                  name="salaryMin"
-                  type="number"
-                  min="0"
-                  placeholder="€ 25"
-                  className="border-white/10 bg-[#1a1a20] text-white placeholder:text-zinc-500"
-                  required
-                />
-              </div>
-              <div className="flex flex-col gap-1.5">
-                <FieldLabel htmlFor="salaryMax">Max Salary / Rate</FieldLabel>
-                <Input
-                  id="salaryMax"
-                  name="salaryMax"
-                  type="number"
-                  min="0"
-                  placeholder="€ 40"
-                  className="border-white/10 bg-[#1a1a20] text-white placeholder:text-zinc-500"
-                  required
-                />
-              </div>
-              <div className="flex flex-col gap-1.5">
-                <Label
-                  htmlFor="frequency"
-                  className="text-sm font-medium text-zinc-300"
-                >
-                  Frequency
-                </Label>
-                <NativeSelect
-                  id="frequency"
-                  name="frequency"
-                  defaultValue={FREQUENCIES[0]}
-                  className="w-full"
-                >
-                  {FREQUENCIES.map((frequency) => (
-                    <NativeSelectOption key={frequency} value={frequency}>
-                      {frequency}
-                    </NativeSelectOption>
-                  ))}
-                </NativeSelect>
-              </div>
+              <TextField
+                id="salaryMin"
+                name="salaryMin"
+                label="Min Salary / Rate"
+                type="number"
+                min={0}
+                placeholder="€ 25"
+                required
+              />
+              <TextField
+                id="salaryMax"
+                name="salaryMax"
+                label="Max Salary / Rate"
+                type="number"
+                min={0}
+                placeholder="€ 40"
+                required
+              />
+              <SelectField
+                id="frequency"
+                name="frequency"
+                label="Frequency"
+                options={FREQUENCIES}
+                defaultValue={FREQUENCIES[0]}
+                required={false}
+              />
             </div>
           </section>
 
@@ -303,29 +224,23 @@ export default function NewJobPage() {
           <section className="flex flex-col gap-5 rounded-xl bg-[#131317] p-4 sm:p-6">
             <SectionHeading>3. Responsibilities &amp; Requirements</SectionHeading>
 
-            <div className="flex flex-col gap-1.5">
-              <FieldLabel htmlFor="responsibilities">Key Responsibilities</FieldLabel>
-              <Textarea
-                id="responsibilities"
-                name="responsibilities"
-                rows={4}
-                placeholder="Showcase your commitment to delivering exceptional user interfaces and digital experiences. You will collaborate directly with systems designers and backend engineers to craft responsive, micro-interaction rich products."
-                className="border-white/10 bg-[#1a1a20] text-white placeholder:text-zinc-500"
-                required
-              />
-            </div>
+            <TextareaField
+              id="responsibilities"
+              name="responsibilities"
+              label="Key Responsibilities"
+              rows={4}
+              placeholder="Showcase your commitment to delivering exceptional user interfaces and digital experiences. You will collaborate directly with systems designers and backend engineers to craft responsive, micro-interaction rich products."
+              required
+            />
 
-            <div className="flex flex-col gap-1.5">
-              <FieldLabel htmlFor="requirements">Qualifications &amp; Requirements</FieldLabel>
-              <Textarea
-                id="requirements"
-                name="requirements"
-                rows={4}
-                placeholder={"• 3+ years of experience with React, TypeScript, and modern state architectures\n• Solid understanding of DOM performance and component-driven designs\n• Experience partnering closely with product teams and UI/UX designers"}
-                className="border-white/10 bg-[#1a1a20] text-white placeholder:text-zinc-500"
-                required
-              />
-            </div>
+            <TextareaField
+              id="requirements"
+              name="requirements"
+              label="Qualifications &amp; Requirements"
+              rows={4}
+              placeholder={"• 3+ years of experience with React, TypeScript, and modern state architectures\n• Solid understanding of DOM performance and component-driven designs\n• Experience partnering closely with product teams and UI/UX designers"}
+              required
+            />
           </section>
 
           {/* Publish — bottom, per the design request */}
@@ -346,6 +261,6 @@ export default function NewJobPage() {
           </div>
         </form>
       </div>
-    </div>
+    </DarkPage>
   );
 }

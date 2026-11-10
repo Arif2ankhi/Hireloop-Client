@@ -25,7 +25,8 @@ import {
 } from "@/components/ui/table";
 import { DeleteJobDialog } from "@/components/jobs/delete-job-dialog";
 import { ViewJobDialog } from "@/components/jobs/view-job-dialog";
-import type { JobPostRow } from "@/components/jobs/types";
+import type { JobPostRow } from "@/types/jobs";
+import { DarkPage, PageHeader } from "@/components/layout/page";
 import { getJobs } from "@/lib/api/jobs";
 
 const DEPT_ICONS: Record<string, LucideIcon> = {
@@ -66,29 +67,18 @@ export default async function RecruiterJobsPage() {
 //   console.log("Jobs data", jobs);
 
   return (
-    <div className="dark min-h-screen bg-[#0b0b0f] p-4 text-white sm:p-6">
+    <DarkPage>
       <div className="flex flex-col gap-6">
         {/* Header */}
         <div className="flex flex-wrap items-end justify-between gap-4">
-          <div>
-            <p className="text-xs text-zinc-500">
-              <Link
-                href="/dashboard/recruiter/jobs"
-                className="hover:text-zinc-300"
-              >
-                Manage Jobs
-              </Link>
-              <span className="mx-1.5">›</span>
-              <span className="text-zinc-300">Job Listings &amp; Postings</span>
-            </p>
-            <h1 className="mt-2 text-2xl font-semibold tracking-tight text-white">
-              Manage Job Posts
-            </h1>
-            <p className="mt-1 text-sm text-muted-foreground">
-              Review live listings, monitor applicants, and update job details
-              across your organization.
-            </p>
-          </div>
+          <PageHeader
+            items={[
+              { label: "Manage Jobs", href: "/dashboard/recruiter/jobs" },
+              { label: "Job Listings & Postings" },
+            ]}
+            title="Manage Job Posts"
+            description="Review live listings, monitor applicants, and update job details across your organization."
+          />
           <Button
             render={<Link href="/dashboard/recruiter/jobs/new" />}
             nativeButton={false}
@@ -254,6 +244,6 @@ export default async function RecruiterJobsPage() {
           </Table>
         </div>
       </div>
-    </div>
+    </DarkPage>
   );
 }

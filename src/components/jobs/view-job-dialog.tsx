@@ -12,7 +12,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import type { JobPostRow } from "@/components/jobs/types";
+import type { JobPostRow } from "@/types/jobs";
 
 /**
  * Eye-icon trigger + read-only dialog showing all stored details of one job

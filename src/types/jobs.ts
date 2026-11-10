@@ -1,4 +1,14 @@
-import type { JobInput } from "@/lib/actions/jobs";
+/**
+ * Jobs domain types — the single shared home, imported by API layers,
+ * component dialogs and pages alike.
+ */
+
+/**
+ * Shape of the job object coming from the New Job form, exactly as the
+ * Express backend stores it (all fields are native form controls, so
+ * FormData → Object.fromEntries → flat strings).
+ */
+export type JobInput = Record<string, string>;
 
 /**
  * One row of the manage-jobs table. Base fields mirror exactly what the New

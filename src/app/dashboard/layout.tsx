@@ -8,7 +8,9 @@ const DashboardLayout = ({ children }: { children: React.ReactNode }) => {
     return (
     <SidebarProvider>
       <DashboardSidebar />
-      <main>
+      {/* flex-1 + min-w-0: fill the width left over by the sidebar instead of
+          shrinking to content (which left a white gap on wide screens). */}
+      <main className="flex min-w-0 flex-1 flex-col">
         <SidebarTrigger />
         {children}
       </main>
