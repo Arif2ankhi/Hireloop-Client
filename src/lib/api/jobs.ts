@@ -21,6 +21,26 @@ export const getJobs = async (query = ""): Promise<JobFormData[]> => {
     }
 }
 
+export const getJobById = async (id: string): Promise<JobFormData | null> => {
+    // Preferred path: dedicated backend route GET /jobs/:id.
+    try {
+        const res = await fetch(`${API_BASE_URL}/jobs/${id}`, {
+            signal: AbortSignal.timeout(3000),
+        });
+
+        if (res.ok) {
+            return (await res.json()) as JobFormData;
+        }
+    } catch {
+        // Backend offline or route missing → fall through to the list scan.
+    }
+
+    // Fallback while GET /jobs/:id doesn't exist yet: scan the full list
+    // backend with this route.
+    const all = await getJobs();
+    return all.find((job) => job._id === id) ?? null;
+}
+
 export const deleteJob = async (id: string) => {
     const res = await fetch(`${API_BASE_URL}/jobs/${id}`, {
         method: "DELETE",

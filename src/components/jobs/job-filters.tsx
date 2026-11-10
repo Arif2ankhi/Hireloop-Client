@@ -1,5 +1,7 @@
 "use client";
 
+import * as React from "react";
+import { useRouter } from "next/navigation";
 import { Input } from "@/components/ui/input";
 import { formatCompact } from "@/lib/jobs/display";
 import { JOB_CATEGORIES, JOB_TYPES } from "@/lib/types/job-form-data";
@@ -7,24 +9,48 @@ import { JOB_CATEGORIES, JOB_TYPES } from "@/lib/types/job-form-data";
 type CountedOption = { value: string; label: string; count?: number };
 
 /**
- * One titled filter group, rendered as native radio controls with
- * per-option counts. Every group is single-select ("only one at a time")
- * and starts with an "All/Any" option, so a choice can always be undone by
- * picking it again.
+ * Small hook shared by every filter control: rewrites one ?name=… param and
+ * navigates, letting the server re-render fresh results. Any filter change
+ * also drops ?page, so a narrowed result set can never leave you stranded
+ * on an out-of-range page.
+ */
+function useRefine() {
+  const router = useRouter();
+
+  return (name: string, value: string) => {
+    // Read the URL fresh — other controls may have changed since mount.
+    const params = new URLSearchParams(window.location.search);
+    if (value) {
+      params.set(name, value);
+    } else {
+      params.delete(name);
+    }
+    params.delete("page");
+    const query = params.toString();
+    router.push(`/browse-jobs${query ? `?${query}` : ""}`, { scroll: false });
+  };
+}
+
+/**
+ * One titled filter group — single-select radios. Picking an option sets
+ * that group's ?name=… param, picking the All/Any option ("") clears it,
+ * and the server page renders accordingly. Checked state mirrors the URL.
  */
 function FilterGroup({
   title,
   name,
+  value,
   options,
-  defaultValue = "",
 }: {
   title: string;
   /** The query param this group maps to, e.g. "type". */
   name: string;
+  /** Currently active value, mirrored from the URL ("" = All/Any). */
+  value: string;
   options: ReadonlyArray<CountedOption>;
-  /** Currently active value ("" = the All/Any option). */
-  defaultValue?: string;
 }) {
+  const refine = useRefine();
+
   return (
     <section className="flex flex-col gap-3">
       <h3 className="text-sm font-medium text-white">{title}</h3>
@@ -43,12 +69,8 @@ function FilterGroup({
                 type="radio"
                 name={name}
                 value={option.value}
-                defaultChecked={option.value === defaultValue}
-                onChange={() => {
-                  // TODO: set the ?name=… search param (and reset ?page=1),
-                  // then let the server re-render. Stub on purpose —
-                  // changing a filter must not update the query yet.
-                }}
+                checked={option.value === value}
+                onChange={() => refine(name, option.value)}
                 className="size-4 accent-brand"
               />
               <span className="text-sm text-zinc-300">{option.label}</span>
@@ -65,7 +87,7 @@ function FilterGroup({
   );
 }
 
-/** Salary buckets → `salary` param (backend decides how to interpret it). */
+/** Salary buckets → ?salary=min-max (applied per page-side filter). */
 const SALARY_RANGES: ReadonlyArray<CountedOption> = [
   { value: "", label: "Any salary" },
   { value: "0-50000", label: "Up to 50k" },
@@ -85,8 +107,8 @@ export type JobFiltersState = {
 
 /**
  * Left sidebar of /browse-jobs. Counts are computed server-side from the
- * fetched jobs and passed in, so the controls stay purely presentational —
- * picking a value does not change the query yet.
+ * fetched jobs and passed in; every control itself navigates with the
+ * updated URL params on change, so results stay server-rendered.
  */
 export function JobFiltersPanel({
   typeCounts,
@@ -103,6 +125,14 @@ export function JobFiltersPanel({
   totalJobs: number;
   initial?: Partial<JobFiltersState>;
 }) {
+  // Location is free text, not a radio: local typing state, committed on
+  // blur/Enter. `key` re-seeds it whenever the URL value changes.
+  const [locationValue, setLocationValue] = React.useState(
+    initial?.location ?? ""
+  );
+  const refine = useRefine();
+  const commitLocation = () => refine("location", locationValue.trim());
+
   return (
     <aside className="flex flex-col gap-5 rounded-xl bg-[#131317] p-5 ring-1 ring-white/5">
       <h2 className="text-base font-semibold text-white">Filters</h2>
@@ -111,7 +141,7 @@ export function JobFiltersPanel({
       <FilterGroup
         title="Job Type"
         name="type"
-        defaultValue={initial?.type}
+        value={initial?.type ?? ""}
         options={[
           { value: "", label: "All types", count: totalJobs },
           ...JOB_TYPES.map((type) => ({
@@ -126,7 +156,7 @@ export function JobFiltersPanel({
       <FilterGroup
         title="Category"
         name="category"
-        defaultValue={initial?.category}
+        value={initial?.category ?? ""}
         options={[
           { value: "", label: "All categories", count: totalJobs },
           ...JOB_CATEGORIES.map((category) => ({
@@ -137,11 +167,11 @@ export function JobFiltersPanel({
         ]}
       />
 
-      {/* Single-select: All / Remote only / On-site only */}
+      {/* Single-select: Any / Remote only / On-site only */}
       <FilterGroup
         title="Remote Work"
         name="isRemote"
-        defaultValue={initial?.isRemote}
+        value={initial?.isRemote ?? ""}
         options={[
           { value: "", label: "Any", count: totalJobs },
           { value: "on", label: "Remote only", count: remoteCount },
@@ -153,20 +183,22 @@ export function JobFiltersPanel({
       <FilterGroup
         title="Salary Range"
         name="salary"
-        defaultValue={initial?.salary}
+        value={initial?.salary ?? ""}
         options={SALARY_RANGES}
       />
 
       <section className="flex flex-col gap-3">
         <h3 className="text-sm font-medium text-white">Location</h3>
         <Input
+          key={initial?.location ?? ""}
           type="search"
           name="location"
-          defaultValue={initial?.location ?? ""}
+          value={locationValue}
           placeholder="e.g. Dhaka"
-          onChange={() => {
-            // TODO: debounce and update the ?location=… search param
-            // (reset ?page=1).
+          onChange={(event) => setLocationValue(event.target.value)}
+          onBlur={commitLocation}
+          onKeyDown={(event) => {
+            if (event.key === "Enter") commitLocation();
           }}
           className="h-9 border-white/10 bg-[#1a1a20] text-white placeholder:text-zinc-500"
         />
@@ -176,18 +208,19 @@ export function JobFiltersPanel({
 }
 
 /**
- * "Sort by" dropdown next to the results heading. Changing it does nothing
- * yet — wire the handler to the ?sort=… param when the backend supports it.
+ * "Sort by" dropdown next to the results heading; changing it navigates
+ * with ?sort=… and the server re-sorts ("" never occurs: "recent" is kept
+ * in the URL for a stable reset value).
  */
-export function JobSortSelect() {
+export function JobSortSelect({ value }: { value: string }) {
+  const refine = useRefine();
+
   return (
     <label className="flex items-center gap-2 text-xs text-zinc-500">
       Sort by:
       <select
-        defaultValue="recent"
-        onChange={() => {
-          // TODO: update the ?sort=… search param and re-fetch.
-        }}
+        value={value}
+        onChange={(event) => refine("sort", event.target.value)}
         className="h-9 rounded-lg border border-white/10 bg-[#1a1a20] px-3 text-xs text-zinc-200 outline-none focus-visible:ring-3 focus-visible:ring-ring/50"
       >
         <option value="recent">Most Recent</option>
