@@ -25,11 +25,12 @@ export const createApplication = async (
 
 /** All applications of one seeker — the My Applications page data source. */
 export const getApplications = async (
-  applicantId: string,
+  query: string,
 ): Promise<JobApplication[]> => {
   try {
     const res = await fetch(
-      `${API_BASE_URL}/applications?applicantId=${encodeURIComponent(applicantId)}`,
+    //   `${API_BASE_URL}/applications?applicantId=${encodeURIComponent(applicantId)}`,
+      `${API_BASE_URL}/applications?applicantId=${query}`,
       { signal: AbortSignal.timeout(3000) },
     );
 
@@ -44,3 +45,5 @@ export const getApplications = async (
     return [];
   }
 };
+
+// export const getApplication = async (data)

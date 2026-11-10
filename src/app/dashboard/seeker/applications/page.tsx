@@ -25,155 +25,12 @@ import {
 } from "@/components/ui/table";
 import type { ApplicationStatus, JobApplication } from "@/types/applications";
 import { formatTimeAgo } from "@/lib/jobs/display";
+import { getApplications } from "@/lib/actions/applications";
+import { useSession } from "@/lib/auth-client";
+// import { auth } from "@/lib/auth";
+// import { headers } from "next/headers";
 
 const APPLICATION_PAGE_SIZE = 5;
-
-/* ------------------------------------------------------------------ */
-/* Dummy data — replace with getApplications(applicantId) when the      */
-/* backend feeds real applications.                                     */
-/* ------------------------------------------------------------------ */
-
-const hoursAgo = (hours: number) =>
-  new Date(Date.now() - hours * 60 * 60 * 1000).toISOString();
-
-const DUMMY_APPLICATIONS: JobApplication[] = [
-  {
-    _id: "app-1",
-    jobId: "job-1",
-    applicantId: "u1",
-    applicantName: "Babu Khaiso",
-    applicantEmail: "babu@mail.com",
-    title: "Senior React Developer",
-    companyName: "PixelCraft Studio",
-    type: "Full-time",
-    isRemote: "on",
-    salaryMin: "80000",
-    salaryMax: "110000",
-    frequency: "per year",
-    status: "Shortlisted",
-    archived: false,
-    appliedAt: hoursAgo(2),
-  },
-  {
-    _id: "app-2",
-    jobId: "job-2",
-    applicantId: "u1",
-    applicantName: "Babu Khaiso",
-    applicantEmail: "babu@mail.com",
-    title: "Backend Engineer (Node.js)",
-    companyName: "DataNest",
-    type: "Full-time",
-    isRemote: "off",
-    salaryMin: "70000",
-    salaryMax: "95000",
-    frequency: "per year",
-    status: "Review",
-    archived: false,
-    appliedAt: hoursAgo(8),
-  },
-  {
-    _id: "app-3",
-    jobId: "job-3",
-    applicantId: "u1",
-    applicantName: "Babu Khaiso",
-    applicantEmail: "babu@mail.com",
-    title: "UX/UI Designer",
-    companyName: "Nimbus Labs",
-    type: "Part-time",
-    isRemote: "on",
-    salaryMin: "30",
-    salaryMax: "45",
-    frequency: "per hour",
-    status: "Applied",
-    archived: false,
-    appliedAt: hoursAgo(26),
-  },
-  {
-    _id: "app-4",
-    jobId: "job-4",
-    applicantId: "u1",
-    applicantName: "Babu Khaiso",
-    applicantEmail: "babu@mail.com",
-    title: "DevOps Engineer",
-    companyName: "Orbit Systems",
-    type: "Full-time",
-    isRemote: "off",
-    salaryMin: "90000",
-    salaryMax: "120000",
-    frequency: "per year",
-    status: "Offered",
-    archived: false,
-    appliedAt: hoursAgo(50),
-  },
-  {
-    _id: "app-5",
-    jobId: "job-5",
-    applicantId: "u1",
-    applicantName: "Babu Khaiso",
-    applicantEmail: "babu@mail.com",
-    title: "Marketing Associate",
-    companyName: "BrightReach",
-    type: "Contract",
-    isRemote: "on",
-    salaryMin: "40000",
-    salaryMax: "55000",
-    frequency: "per year",
-    status: "Rejected",
-    archived: false,
-    appliedAt: hoursAgo(74),
-  },
-  {
-    _id: "app-6",
-    jobId: "job-6",
-    applicantId: "u1",
-    applicantName: "Babu Khaiso",
-    applicantEmail: "babu@mail.com",
-    title: "QA Automation Analyst",
-    companyName: "TestWorks",
-    type: "Full-time",
-    isRemote: "off",
-    salaryMin: "60000",
-    salaryMax: "80000",
-    frequency: "per year",
-    status: "Applied",
-    archived: false,
-    appliedAt: hoursAgo(100),
-  },
-  {
-    _id: "app-7",
-    jobId: "job-7",
-    applicantId: "u1",
-    applicantName: "Babu Khaiso",
-    applicantEmail: "babu@mail.com",
-    title: "Frontend Developer (Intern)",
-    companyName: "Sproutify",
-    type: "Internship",
-    isRemote: "on",
-    salaryMin: "15",
-    salaryMax: "20",
-    frequency: "per hour",
-    status: "Rejected",
-    archived: false,
-    appliedAt: hoursAgo(140),
-  },
-  {
-    _id: "app-8",
-    jobId: "job-8",
-    applicantId: "u1",
-    applicantName: "Babu Khaiso",
-    applicantEmail: "babu@mail.com",
-    title: "Full-stack Developer",
-    companyName: "StackForge",
-    type: "Full-time",
-    isRemote: "on",
-    salaryMin: "85000",
-    salaryMax: "105000",
-    frequency: "per year",
-    status: "Applied",
-    archived: true, // older listing — appears in the Archived tab
-    appliedAt: hoursAgo(24 * 30),
-  },
-];
 
 /* ------------------------------------------------------------------ */
 /* Status pill colors (same treatment as the manage-table badges).      */
@@ -191,13 +48,39 @@ const STATUS_BADGE: Record<ApplicationStatus, string> = {
     "border-emerald-400/30 bg-emerald-400/10 text-emerald-300 [&>span]:bg-emerald-300",
 };
 
-export default function MyApplicationsPage() {
+export default  function MyApplicationsPage() {
+
+    // const session = await auth.api.getSession({
+    //     headers: await headers()
+    // })
+
+
+
   const [tab, setTab] = React.useState<"Active" | "Archived">("Active");
   const [search, setSearch] = React.useState("");
   const [page, setPage] = React.useState(1);
+  const [applications, setApplications] = React.useState<JobApplication[]>([]);
+  const [isLoading, setIsLoading] = React.useState(true);
 
-  // Data source for now: dummy array — swap for getApplications(...) later.
-  const applications = DUMMY_APPLICATIONS;
+  // Signed-in seeker whose applications we load.
+  const { data: session } = useSession();
+  const applicantId = session?.user?.id;
+
+  React.useEffect(() => {
+    if (!applicantId) return;
+
+    let cancelled = false;
+    getApplications(applicantId).then((list) => {
+      if (!cancelled) {
+        setApplications(list);
+        setIsLoading(false);
+      }
+    });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [applicantId]);
 
   const visible = applications.filter(
     (app) =>
@@ -334,7 +217,20 @@ export default function MyApplicationsPage() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {pageItems.map((app) => (
+                {isLoading ? (
+                  <TableRow className="border-white/5 hover:bg-transparent">
+                    <TableCell colSpan={5} className="py-10 text-center text-sm text-zinc-500">
+                      Loading applications…
+                    </TableCell>
+                  </TableRow>
+                ) : pageItems.length === 0 ? (
+                  <TableRow className="border-white/5 hover:bg-transparent">
+                    <TableCell colSpan={5} className="py-10 text-center text-sm text-zinc-500">
+                      No applications found
+                    </TableCell>
+                  </TableRow>
+                ) : (
+                  pageItems.map((app) => (
                   <TableRow
                     key={app._id}
                     className="border-white/5 hover:bg-white/[0.02]"
@@ -382,7 +278,8 @@ export default function MyApplicationsPage() {
                       </button>
                     </TableCell>
                   </TableRow>
-                ))}
+                ))
+                )}
               </TableBody>
             </Table>
           </div>
