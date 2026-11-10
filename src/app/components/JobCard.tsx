@@ -14,14 +14,11 @@ import {
 } from "lucide-react";
 
 import type { JobFormData } from "@/lib/types/job-form-data";
-import {
-  formatCompact,
-  formatDeadline,
-  formatFrequency,
-  formatLocationWithCountry,
-  getDeptIcon,
-} from "@/lib/jobs/display";
+import type { JobApplication } from "@/types/applications";
+import { formatCompact, formatDeadline, formatFrequency, formatLocationWithCountry, getDeptIcon } from "@/lib/jobs/display";
+import { createApplication } from "@/lib/actions/applications";
 import { useSession } from "@/lib/auth-client";
+import { toast } from "@/components/ui/toast";
 import { useRouter } from "next/navigation";
 
 /** Small dark pill chip used across the header info row. */
@@ -53,8 +50,8 @@ function InfoSection({ title, children }: { title: string; children: ReactNode }
  */
 export function JobCard({ job }: { job: JobFormData }) {
   const [saved, setSaved] = React.useState(false);
-
-  
+  const [applied, setApplied] = React.useState(false);
+  const [submitting, setSubmitting] = React.useState(false);
 
   const handleSave = () => {
     // TODO: persist the bookmark for the signed-in user (backend isn't in
@@ -62,20 +59,54 @@ export function JobCard({ job }: { job: JobFormData }) {
     setSaved(!saved);
   };
 
-  //ussr session 
-  const {data: session} = useSession()
-  const router = useRouter()
+  // User session
+  const { data: session } = useSession();
+  const router = useRouter();
   const user = session?.user;
 
-  const handleApplyNow = () => {
-    if(!user){
-        router.push(`/sign-in?redirectTo=/browse-jobs/${job._id}`)
-        return
-
+  const handleApplyNow = async () => {
+    if (!user) {
+      router.push(`/sign-in?redirectTo=/browse-jobs/${job._id}`);
+      return;
     }
-    else{
-        //save the application to the database
-        console.log('Save the applicatiopn to the database');
+
+    if (user.role !== "seeker" || !job._id || applied || submitting) return;
+
+    // Full JobApplication snapshot: fields the My Applications table reads.
+    const payload: Omit<JobApplication, "_id"> = {
+      jobId: job._id,
+      applicantId: user.id,
+      applicantName: user.name,
+      applicantEmail: user.email,
+      title: job.title,
+      companyName: job.companyName,
+      type: job.type,
+      isRemote: job.isRemote,
+      salaryMin: job.salaryMin,
+      salaryMax: job.salaryMax,
+      frequency: job.frequency,
+      status: "Applied",
+      archived: false,
+      appliedAt: new Date().toISOString(),
+    };
+
+    setSubmitting(true);
+    try {
+      await createApplication(payload);
+      setApplied(true);
+      toast.add({
+        title: "Application submitted",
+        description: "Application submitted successfully",
+        type: "success",
+      });
+    } catch {
+      toast.add({
+        title: "Application failed",
+        description: "Could not submit the application. Try again.",
+        type: "error",
+      });
+    } finally {
+      setSubmitting(false);
     }
   };
 
@@ -129,9 +160,10 @@ export function JobCard({ job }: { job: JobFormData }) {
           <button
             type="button"
             onClick={handleApplyNow}
-            className="h-9 rounded-lg bg-white px-4 text-sm font-medium text-zinc-900 transition-colors hover:bg-zinc-200"
+            disabled={applied || submitting}
+            className="h-9 rounded-lg bg-white px-4 text-sm font-medium text-zinc-900 transition-colors hover:bg-zinc-200 disabled:cursor-not-allowed disabled:bg-zinc-600 disabled:text-zinc-300"
           >
-            Apply Now
+            {applied ? "Applied" : submitting ? "Submitting…" : "Apply Now"}
           </button>
         </div>
       </div>
