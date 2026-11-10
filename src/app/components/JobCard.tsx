@@ -21,6 +21,8 @@ import {
   formatLocationWithCountry,
   getDeptIcon,
 } from "@/lib/jobs/display";
+import { useSession } from "@/lib/auth-client";
+import { useRouter } from "next/navigation";
 
 /** Small dark pill chip used across the header info row. */
 function Chip({ icon, children }: { icon: ReactNode; children: ReactNode }) {
@@ -52,14 +54,29 @@ function InfoSection({ title, children }: { title: string; children: ReactNode }
 export function JobCard({ job }: { job: JobFormData }) {
   const [saved, setSaved] = React.useState(false);
 
+  
+
   const handleSave = () => {
     // TODO: persist the bookmark for the signed-in user (backend isn't in
     // place yet) — for now this only toggles the visual state.
     setSaved(!saved);
   };
 
+  //ussr session 
+  const {data: session} = useSession()
+  const router = useRouter()
+  const user = session?.user;
+
   const handleApplyNow = () => {
-    // TODO: open the application flow once applications are implemented.
+    if(!user){
+        router.push(`/sign-in?redirectTo=/browse-jobs/${job._id}`)
+        return
+
+    }
+    else{
+        //save the application to the database
+        console.log('Save the applicatiopn to the database');
+    }
   };
 
   const isRemote = job.isRemote === "on";

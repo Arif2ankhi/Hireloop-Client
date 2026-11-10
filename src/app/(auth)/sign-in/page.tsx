@@ -1,16 +1,20 @@
 "use client";
 import { AuthCard } from "@/components/auth/auth-card";
 import { authClient } from "@/lib/auth-client";
+import { useSearchParams } from "next/navigation";
 
 
 export default function SignInPage() {
 
+  const searchParams = useSearchParams()
+  const redirectTo =searchParams.get("redirectTo") ?? "/"
+
     const handleSignIn = async (data: Record<string, string>) => {
         const { data: SignInResponse, error } = await authClient.signIn.email({
-    email: data.email, // required, The email address of the user.
-    password: data.password, // required, The password of the user. It should be at least 8 characters long and max 128 by default.
-    rememberMe: true, // If false, the user will be signed out when the browser is closed. (optional) (default: true)
-    callbackURL: "/", // An optional URL to redirect to after the user signs in. (optional)
+    email: data.email,
+    password: data.password, 
+    rememberMe: true, 
+    callbackURL: redirectTo, 
 });
 console.log('sign in rrsponse', SignInResponse, error);
 

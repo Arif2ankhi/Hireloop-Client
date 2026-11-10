@@ -21,6 +21,8 @@ export const getJobs = async (query = ""): Promise<JobFormData[]> => {
     }
 }
 
+
+//Jobdetails page 
 export const getJobById = async (id: string): Promise<JobFormData | null> => {
     // Preferred path: dedicated backend route GET /jobs/:id.
     try {

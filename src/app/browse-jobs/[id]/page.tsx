@@ -2,6 +2,7 @@ import Link from "next/link";
 
 import { getJobById } from "@/lib/api/jobs";
 import { JobCard } from "@/app/components/JobCard";
+import { SiteNavbar } from "@/components/site-navbar";
 
 /**
  * Job Details (/browse-jobs/[id]): fetches one job by id and renders it
@@ -16,26 +17,31 @@ export default async function JobDetailsPage({
   const job = await getJobById(id);
 
   return (
-    <div className="dark min-h-screen bg-[#0b0b0f] p-4 text-white sm:p-6">
-      <div className="mx-auto flex w-full max-w-3xl flex-col gap-4">
-        <Link
-          href="/browse-jobs"
-          className="text-sm text-zinc-400 transition-colors hover:text-white"
-        >
-          ← Back to Browse Jobs
-        </Link>
+    <div className="dark min-h-screen bg-[#0b0b0f] text-white">
+      {/* The navbar is page-mounted (not in the root layout), like /browse-jobs */}
+      <SiteNavbar />
 
-        {job && job._id ? (
-          <JobCard job={job} />
-        ) : (
-          <div className="rounded-xl bg-[#131317] p-10 text-center ring-1 ring-white/5">
-            <p className="text-sm font-medium text-white">Job not found</p>
-            <p className="mt-1 text-sm text-zinc-500">
-              This listing may have been removed or never existed.
-            </p>
-          </div>
-        )}
-      </div>
+      <main className="p-4 sm:p-6">
+        <div className="mx-auto flex w-full max-w-3xl flex-col gap-4">
+          <Link
+            href="/browse-jobs"
+            className="text-sm text-zinc-400 transition-colors hover:text-white"
+          >
+            ← Back to Browse Jobs
+          </Link>
+
+          {job && job._id ? (
+            <JobCard job={job} />
+          ) : (
+            <div className="rounded-xl bg-[#131317] p-10 text-center ring-1 ring-white/5">
+              <p className="text-sm font-medium text-white">Job not found</p>
+              <p className="mt-1 text-sm text-zinc-500">
+                This listing may have been removed or never existed.
+              </p>
+            </div>
+          )}
+        </div>
+      </main>
     </div>
   );
 }
