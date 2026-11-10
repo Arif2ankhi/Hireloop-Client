@@ -1,12 +1,6 @@
-import type { LucideIcon } from "lucide-react";
 import {
-  BadgeCheckIcon,
-  Code2Icon,
-  MegaphoneIcon,
-  PenToolIcon,
   PinIcon,
   PlusIcon,
-  ServerCogIcon,
   UserRoundIcon,
   UsersRoundIcon,
   PencilIcon,
@@ -28,37 +22,12 @@ import { ViewJobDialog } from "@/components/jobs/view-job-dialog";
 import type { JobPostRow } from "@/types/jobs";
 import { DarkPage, PageHeader } from "@/components/layout/page";
 import { getJobs } from "@/lib/api/jobs";
-
-const DEPT_ICONS: Record<string, LucideIcon> = {
-  "Engineering & Tech": Code2Icon,
-  Design: PenToolIcon,
-  "Infrastructure & Tech": ServerCogIcon,
-  Marketing: MegaphoneIcon,
-  Quality: BadgeCheckIcon,
-};
-
-
-const CURRENCY_SYMBOLS: Record<string, string> = {
-  EUR: "€",
-  USD: "$",
-  GBP: "£",
-  BDT: "৳",
-};
-
-function formatDeadline(iso: string) {
-  // Fixed locale keeps server/client markup identical (no hydration drift).
-  return new Date(`${iso}T00:00:00Z`).toLocaleDateString("en-US", {
-    timeZone: "UTC",
-    month: "short",
-    day: "numeric",
-    year: "numeric",
-  });
-}
-
-/** "per hour" → "/ hr" */
-function formatFrequency(frequency: string) {
-  return ` / ${frequency.replace(/^per /, "")}`;
-}
+import {
+  CURRENCY_SYMBOLS,
+  formatDeadline,
+  formatFrequency,
+  getDeptIcon,
+} from "@/lib/jobs/display";
 
 export default async function RecruiterJobsPage() {
   // GET /jobs (your Express backend at localhost:5000) — returns the array of
@@ -122,7 +91,7 @@ export default async function RecruiterJobsPage() {
             </TableHeader>
             <TableBody>
               {jobs.map((job) => {
-                const DeptIcon = DEPT_ICONS[job.category] ?? Code2Icon;
+                const DeptIcon = getDeptIcon(job.category);
                 const symbol = CURRENCY_SYMBOLS[job.currency] ?? job.currency;
                 const status = job.status ?? "Active";
                 const applicants = job.applicants ?? "0";

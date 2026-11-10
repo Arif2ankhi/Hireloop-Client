@@ -1,6 +1,7 @@
 import { API_BASE_URL } from "@/lib/api/config";
+import type { JobFormData } from "@/lib/types/job-form-data";
 
-export const getJobs = async (query = "") => {
+export const getJobs = async (query = ""): Promise<JobFormData[]> => {
     try {
         // 3s cap so a stopped backend can't hang the page render.
         const res = await fetch(`${API_BASE_URL}/jobs?${query}`, {
@@ -11,7 +12,7 @@ export const getJobs = async (query = "") => {
             throw new Error(`getJobs failed: ${res.status}`)
         }
 
-        return res.json()
+        return (await res.json()) as JobFormData[]
     } catch (err) {
         // Backend offline → render an empty table instead of crashing the
         // whole route (the previous behavior threw ECONNREFUSED on render).

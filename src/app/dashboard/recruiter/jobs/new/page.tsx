@@ -19,21 +19,13 @@ import {
 } from "@/components/jobs/form-fields";
 import { DarkPage, PageHeader } from "@/components/layout/page";
 import { createJob } from "@/lib/actions/jobs";
+import {
+  JOB_CATEGORIES as CATEGORIES,
+  JOB_TYPES,
+  PAY_FREQUENCIES as FREQUENCIES,
+} from "@/lib/types/job-form-data";
 import { toast } from "@/components/ui/toast";
 import { useRouter } from "next/navigation";
-
-const JOB_TYPES = ["Full-time", "Part-time", "Contract", "Internship"] as const;
-
-const CATEGORIES = [
-  "Engineering & Tech",
-  "Design",
-  "Marketing",
-  "Product",
-  "Data & Analytics",
-  "Other",
-] as const;
-
-const FREQUENCIES = ["per hour", "per day", "per month", "per year"] as const;
 
 export default function NewJobPage() {
   // The remote toggle only records the flag in FormData — the location field
