@@ -1,9 +1,9 @@
 import { API_BASE_URL } from "@/lib/api/config";
 
-export const getJobs = async () => {
+export const getJobs = async (query = "") => {
     try {
         // 3s cap so a stopped backend can't hang the page render.
-        const res = await fetch(`${API_BASE_URL}/jobs`, {
+        const res = await fetch(`${API_BASE_URL}/jobs?${query}`, {
             signal: AbortSignal.timeout(3000),
         })
 
