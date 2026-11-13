@@ -46,4 +46,32 @@ export const getApplications = async (
   }
 };
 
+
+/**
+ * How many applications one seeker has submitted — used by the Apply flow's
+ * free-tier cap (JobCard redirects to /payment at the limit). Hits the
+ * dedicated backend route GET /applications/count?applicantId=<id>; a
+ * backend error counts as 0 (fail open, same convention as getApplications).
+ */
+export const getApplicationsCount = async (
+  applicantId: string,
+): Promise<{ count: number }> => {
+  try {
+    const res = await fetch(
+      `${API_BASE_URL}/applications/count?applicantId=${applicantId}`,
+      { signal: AbortSignal.timeout(3000) },
+    );
+
+    if (!res.ok) {
+      throw new Error(`getApplicationsCount failed: ${res.status}`);
+    }
+
+    return (await res.json()) as { count: number };
+  } catch (err) {
+    console.error("getApplicationsCount unavailable:", err);
+    return { count: 0 };
+  }
+};
+
+
 // export const getApplication = async (data)

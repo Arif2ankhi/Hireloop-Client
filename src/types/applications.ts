@@ -35,6 +35,8 @@ export type JobApplication = {
   /* Job snapshot (copied at apply time, not references). */
   title: string;
   companyName: string;
+  /** Category drives the tinted icon chip in My Applications; legacy docs may omit it. */
+  category?: string;
   type: string; // "Full-time" | "Part-time" | …
   isRemote: "on" | "off"; // checkbox-native value, consistent with jobs
   salaryMin: string;
@@ -42,8 +44,10 @@ export type JobApplication = {
   frequency: string;
 
   status: ApplicationStatus;
-  /** false = "Active" tab, true = "Archived" tab of My Applications. */
-  archived: boolean;
+  /** false = "Active" tab, true = "Archived" tab of My Applications.
+   *  Optional: documents created before this field was added may omit it —
+   *  read it as `app.archived ?? false`, never with strict `===`. */
+  archived?: boolean;
   /** ISO timestamp — rendered as "2 hours ago" in the table. */
   appliedAt: string;
 };

@@ -20,6 +20,26 @@ export function getDeptIcon(category: string): LucideIcon {
   return DEPT_ICONS[category] ?? Code2Icon;
 }
 
+/**
+ * Category → tinted chip classes for the icon tiles (job cards, tables).
+ * Applications snapshot may lack the field (legacy docs) — `getCategoryColor`
+ * falls back to the neutral zinc chip.
+ */
+export const CATEGORY_COLORS: Record<string, string> = {
+  "Engineering & Tech": "text-emerald-400 bg-emerald-400/10",
+  Design: "text-violet-400 bg-violet-400/10",
+  Marketing: "text-orange-400 bg-orange-400/10",
+  Product: "text-blue-400 bg-blue-400/10",
+  "Data & Analytics": "text-cyan-400 bg-cyan-400/10",
+  "Infrastructure & Tech": "text-sky-400 bg-sky-400/10",
+  Quality: "text-lime-400 bg-lime-400/10",
+  Other: "text-zinc-400 bg-zinc-400/10",
+};
+
+export function getCategoryColor(category?: string): string {
+  return CATEGORY_COLORS[category ?? ""] ?? CATEGORY_COLORS.Other;
+}
+
 export const CURRENCY_SYMBOLS: Record<string, string> = {
   EUR: "€",
   USD: "$",

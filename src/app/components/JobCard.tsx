@@ -16,7 +16,7 @@ import {
 import type { JobFormData } from "@/lib/types/job-form-data";
 import type { JobApplication } from "@/types/applications";
 import { formatCompact, formatDeadline, formatFrequency, formatLocationWithCountry, getDeptIcon } from "@/lib/jobs/display";
-import { createApplication } from "@/lib/actions/applications";
+import { createApplication, getApplicationsCount } from "@/lib/actions/applications";
 import { useSession } from "@/lib/auth-client";
 import { toast } from "@/components/ui/toast";
 import { useRouter } from "next/navigation";
@@ -72,6 +72,15 @@ export function JobCard({ job }: { job: JobFormData }) {
 
     if (user.role !== "seeker" || !job._id || applied || submitting) return;
 
+    // Free-tier cap: redirect to /payment once the seeker has applied to 10
+    // jobs. TODO: skip this for premium users once the user record carries a
+    // premium flag.
+    const { count } = await getApplicationsCount(user.id);
+    if (count >= 10) {
+      router.push("/payment");
+      return;
+    }
+
     // Full JobApplication snapshot: fields the My Applications table reads.
     const payload: Omit<JobApplication, "_id"> = {
       jobId: job._id,
@@ -80,6 +89,7 @@ export function JobCard({ job }: { job: JobFormData }) {
       applicantEmail: user.email,
       title: job.title,
       companyName: job.companyName,
+      category: job.category,
       type: job.type,
       isRemote: job.isRemote,
       salaryMin: job.salaryMin,

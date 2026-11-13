@@ -3,15 +3,10 @@
 import * as React from "react";
 import { createElement } from "react";
 import {
-  BriefcaseIcon,
   ChevronLeftIcon,
   ChevronRightIcon,
-  ClockIcon,
   DownloadIcon,
-  FileCheck2Icon,
   SearchIcon,
-  TrendingUpIcon,
-  UsersIcon,
 } from "lucide-react";
 
 import { DarkPage } from "@/components/layout/page";
@@ -24,7 +19,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import type { ApplicationStatus, JobApplication } from "@/types/applications";
-import { formatTimeAgo } from "@/lib/jobs/display";
+import { formatTimeAgo, getCategoryColor, getDeptIcon } from "@/lib/jobs/display";
 import { getApplications } from "@/lib/actions/applications";
 import { useSession } from "@/lib/auth-client";
 // import { auth } from "@/lib/auth";
@@ -82,9 +77,13 @@ export default  function MyApplicationsPage() {
     };
   }, [applicantId]);
 
+  // Legacy docs created before the archived field existed have no value —
+  // treat a missing flag as "active" everywhere (see also `active` below).
+  const isArchived = (app: JobApplication) => app.archived ?? false;
+
   const visible = applications.filter(
     (app) =>
-      app.archived === (tab === "Archived") &&
+      isArchived(app) === (tab === "Archived") &&
       `${app.title} ${app.companyName}`
         .toLowerCase()
         .includes(search.trim().toLowerCase()),
@@ -106,7 +105,7 @@ export default  function MyApplicationsPage() {
   };
 
   // Stat tiles — computed from the ACTIVE applications only.
-  const active = applications.filter((app) => !app.archived);
+  const active = applications.filter((app) => !isArchived(app));
   const shortlisted = active.filter((app) => app.status === "Shortlisted").length;
   const interviews = active.filter((app) => app.status === "Review").length;
   const offers = active.filter((app) => app.status === "Offered").length;
@@ -116,10 +115,10 @@ export default  function MyApplicationsPage() {
       : 0;
 
   const stats = [
-    { label: "Total Applied", value: String(active.length), icon: UsersIcon },
-    { label: "Shortlisted", value: String(shortlisted), icon: FileCheck2Icon },
-    { label: "Interviews", value: String(interviews), icon: ClockIcon },
-    { label: "Success Rate", value: `${successRate}%`, icon: TrendingUpIcon },
+    { label: "Total Applied", value: String(active.length), valueClass: "text-white" },
+    { label: "Shortlisted", value: String(shortlisted), valueClass: "text-white" },
+    { label: "Interviews", value: String(interviews), valueClass: "text-amber-400" },
+    { label: "Success Rate", value: `${successRate}%`, valueClass: "text-emerald-400" },
   ];
 
   return (
@@ -132,7 +131,7 @@ export default  function MyApplicationsPage() {
               My Applications
             </h1>
             <p className="mt-1 text-sm text-zinc-500">
-              Track the status of all jobs you have applied to
+              Track your job applications and interview progress in real-time.
             </p>
           </div>
 
@@ -168,20 +167,17 @@ export default  function MyApplicationsPage() {
           </div>
         </div>
 
-        {/* Stat tiles */}
+        {/* Stat tiles — label on top, big colored value below (per the mock) */}
         <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
           {stats.map((stat) => (
             <div
               key={stat.label}
-              className="flex items-center gap-3 rounded-xl bg-[#131317] p-4 ring-1 ring-white/5"
+              className="flex flex-col gap-2 rounded-xl bg-[#131317] p-4 ring-1 ring-white/5"
             >
-              <span className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-[#1a1a20] text-brand">
-                {createElement(stat.icon, { className: "size-5" })}
-              </span>
-              <div>
-                <p className="text-xl font-semibold text-white">{stat.value}</p>
-                <p className="text-xs text-zinc-500">{stat.label}</p>
-              </div>
+              <p className="text-xs text-zinc-500">{stat.label}</p>
+              <p className={`text-2xl font-semibold ${stat.valueClass}`}>
+                {stat.value}
+              </p>
             </div>
           ))}
         </div>
@@ -237,9 +233,14 @@ export default  function MyApplicationsPage() {
                   >
                     <TableCell>
                       <div className="flex items-center gap-3">
-                        <span className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-[#1a1a20] text-brand">
-                          {/* Application snapshot has no category — generic icon */}
-                          <BriefcaseIcon className="size-4.5" />
+                        <span
+                          className={`flex size-9 shrink-0 items-center justify-center rounded-lg ${getCategoryColor(app.category)}`}
+                        >
+                          {/* Snapshot category colors the chip; legacy docs
+                              fall back to the neutral zinc chip */}
+                          {createElement(getDeptIcon(app.category ?? ""), {
+                            className: "size-4.5",
+                          })}
                         </span>
                         <div className="min-w-0">
                           <p className="truncate text-sm font-medium text-white">
@@ -289,7 +290,7 @@ export default  function MyApplicationsPage() {
             <p className="text-xs text-zinc-500">
               {visible.length === 0
                 ? "No applications found"
-                : `Showing ${pageStart + 1}–${pageStart + pageItems.length} of ${visible.length} applications`}
+                : `Showing ${pageStart + 1} to ${pageStart + pageItems.length} of ${visible.length} applications`}
             </p>
             <div className="flex items-center gap-1">
               <button
