@@ -18,6 +18,15 @@ export const auth = betterAuth({
         input: true,
         required: false,
       },
+      // Server-managed upgrade flag: set only after a verified Stripe payment
+      // (see /payment/success → POST /users/:id/premium on the Express
+      // backend). input: false keeps the client from sending it at sign-up.
+      premium: {
+        type: "boolean",
+        defaultValue: false,
+        input: false,
+        required: false,
+      },
     },
   },
 

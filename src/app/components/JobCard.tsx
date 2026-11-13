@@ -73,10 +73,9 @@ export function JobCard({ job }: { job: JobFormData }) {
     if (user.role !== "seeker" || !job._id || applied || submitting) return;
 
     // Free-tier cap: redirect to /payment once the seeker has applied to 10
-    // jobs. TODO: skip this for premium users once the user record carries a
-    // premium flag.
+    // jobs — premium users are exempt (flag set by the Stripe success page).
     const { count } = await getApplicationsCount(user.id);
-    if (count >= 10) {
+    if (count >= 10 && !user.premium) {
       router.push("/payment");
       return;
     }
