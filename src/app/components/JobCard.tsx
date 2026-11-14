@@ -21,6 +21,10 @@ import { useSession } from "@/lib/auth-client";
 import { toast } from "@/components/ui/toast";
 import { useRouter } from "next/navigation";
 
+/** How many jobs a non-premium seeker may apply to. Currently 3 for
+ *  testing — the production free tier is 10. */
+const FREE_APPLICATION_LIMIT = 3;
+
 /** Small dark pill chip used across the header info row. */
 function Chip({ icon, children }: { icon: ReactNode; children: ReactNode }) {
   return (
@@ -72,10 +76,12 @@ export function JobCard({ job }: { job: JobFormData }) {
 
     if (user.role !== "seeker" || !job._id || applied || submitting) return;
 
-    // Free-tier cap: redirect to /payment once the seeker has applied to 10
-    // jobs — premium users are exempt (flag set by the Stripe success page).
+    // Free-tier cap: once the seeker has applied to FREE_APPLICATION_LIMIT
+    // jobs, the next attempt redirects to /payment. Premium users are exempt.
     const { count } = await getApplicationsCount(user.id);
-    if (count >= 10 && !user.premium) {
+    // TEMP DEBUG — remove once the redirect works.
+    console.log("apply cap check:", { count, limit: FREE_APPLICATION_LIMIT, premium: user.premium });
+    if (count >= FREE_APPLICATION_LIMIT && !user.premium) {
       router.push("/payment");
       return;
     }
@@ -108,6 +114,10 @@ export function JobCard({ job }: { job: JobFormData }) {
         description: "Application submitted successfully",
         type: "success",
       });
+      // Back to the list so the seeker can apply to the next job. The
+      // success toast survives the navigation because the toast manager is
+      // a module-level singleton and /browse-jobs mounts a <Toaster /> too.
+      router.push("/browse-jobs");
     } catch {
       toast.add({
         title: "Application failed",

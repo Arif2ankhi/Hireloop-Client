@@ -33,6 +33,7 @@ export type JobFormData = {
 
   title: string;
   companyName: string;
+  recruiterId: string,
   category: JobCategory;
   /** Stored per JobType ("Part-time", …); some legacy docs may use "Full-Time" — always compare case-insensitively. */
   type: JobType;

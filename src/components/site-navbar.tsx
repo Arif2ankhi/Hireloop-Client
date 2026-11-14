@@ -97,7 +97,6 @@ export function SiteNavbar() {
                 </div>
                 <Button
                   onClick={handleSignOut}
-                  nativeButton={false}
                   className="h-11 rounded-lg bg-brand px-6 text-sm font-medium text-white hover:bg-brand/90"
                 >
                   Sign Out

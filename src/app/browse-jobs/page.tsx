@@ -12,6 +12,7 @@ import {
 } from "@/components/jobs/job-filters";
 import { JobPagination } from "@/components/jobs/job-pagination";
 import { JobSearchBar } from "@/components/jobs/job-search-bar";
+import { Toaster } from "@/components/ui/toast";
 
 type SearchParams = Promise<{
   [key: string]: string | string[] | undefined;
@@ -172,6 +173,9 @@ export default async function BrowseJobsPage({
   return (
     <div className="dark min-h-screen bg-[#0b0b0f] text-white">
       <SiteNavbar />
+      {/* Toast portal — the "Application submitted" toast lands here after
+          the Apply flow navigates back from the job details page */}
+      <Toaster />
 
       <main className="mx-auto w-full max-w-7xl px-4 pt-4 pb-12 sm:px-6 sm:pt-6">
         {/* Search panel */}

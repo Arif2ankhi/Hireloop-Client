@@ -26,36 +26,49 @@ import {
 } from "@/lib/types/job-form-data";
 import { toast } from "@/components/ui/toast";
 import { useRouter } from "next/navigation";
+import { useSession } from "@/lib/auth-client";
 
 export default function NewJobPage() {
   // The remote toggle only records the flag in FormData — the location field
   // is always enabled now, so only the setter is needed for the reset below.
   const [, setIsRemote] = React.useState(false);
-  const [submitted, setSubmitted] = React.useState(false);
 
   const router = useRouter();
+  // Signed-in recruiter — the job's recruiterId comes from the session,
+  // never from the form (a client-editable field would let anyone post
+  // listings under another recruiter's id).
+  const { data: session } = useSession();
+  const user = session?.user;
 
-  const  handleSubmit = async(event: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
+    if (!user) {
+      // No session → no recruiterId → cannot create the job.
+      router.push("/sign-in?redirectTo=/dashboard/recruiter/jobs/new");
+      return;
+    }
+
     const form = event.currentTarget;
     const data = Object.fromEntries(new FormData(form)) as Record<string, string>;
-    // TODO: POST this object to /api/jobs once the backend exists.
-    console.log("new job", data);
-    toast.add({
-      title: "Job Created",
-      description: "This job has been added Successfully.",
-    });
-    router.push('/dashboard/recruiter/jobs')
-    setSubmitted(true);
-    form.reset();
-    setIsRemote(false);
 
-    // New way to fetch data  from lib/actions.ts
-
-    const result = await createJob(data)
-    console.log('createdJob result:', result);
-
-  }
+    try {
+      await createJob({ ...data, recruiterId: user.id });
+      toast.add({
+        title: "Job Created",
+        description: "This job has been added successfully.",
+        type: "success",
+      });
+      form.reset();
+      setIsRemote(false);
+      router.push("/dashboard/recruiter/jobs");
+    } catch {
+      toast.add({
+        title: "Job creation failed",
+        description: "Could not publish the job. Try again.",
+        type: "error",
+      });
+    }
+  };
 
   return (
     <DarkPage>
@@ -244,12 +257,6 @@ export default function NewJobPage() {
               Publish Job
               <ArrowRight className="size-4" />
             </Button>
-            {submitted ? (
-              <p className="text-sm text-zinc-400">
-                Job data captured — see the console for the collected object
-                (API wiring comes next).
-              </p>
-            ) : null}
           </div>
         </form>
       </div>

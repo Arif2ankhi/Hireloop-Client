@@ -3,6 +3,7 @@ import Link from "next/link";
 import { getJobById } from "@/lib/api/jobs";
 import { JobCard } from "@/app/components/JobCard";
 import { SiteNavbar } from "@/components/site-navbar";
+import { Toaster } from "@/components/ui/toast";
 
 /**
  * Job Details (/browse-jobs/[id]): fetches one job by id and renders it
@@ -20,6 +21,8 @@ export default async function JobDetailsPage({
     <div className="dark min-h-screen bg-[#0b0b0f] text-white">
       {/* The navbar is page-mounted (not in the root layout), like /browse-jobs */}
       <SiteNavbar />
+      {/* Toast portal — the Apply flow fires toasts on this page */}
+      <Toaster />
 
       <main className="p-4 sm:p-6">
         <div className="mx-auto flex w-full max-w-3xl flex-col gap-4">

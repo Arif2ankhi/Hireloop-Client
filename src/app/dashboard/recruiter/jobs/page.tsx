@@ -28,12 +28,15 @@ import {
   formatFrequency,
   getDeptIcon,
 } from "@/lib/jobs/display";
+import { getSession } from "@/lib/core/server";
 
 export default async function RecruiterJobsPage() {
+  const session = await getSession()
   // GET /jobs (your Express backend at localhost:5000) — returns the array of
   // stored job posts. Swap the dummy rows for this once the API is live.
-  const jobs = ((await getJobs()) ?? []) as JobPostRow[];
-//   console.log("Jobs data", jobs);
+  // const jobs = ((await getJobs()) ?? []) as JobPostRow[];
+  const jobs = ((await getJobs(`recruiterId=${session?.user.id}`)) ?? []) as JobPostRow[];
+
 
   return (
     <DarkPage>
