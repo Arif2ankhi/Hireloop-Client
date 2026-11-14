@@ -48,6 +48,33 @@ export const getApplications = async (
 
 
 /**
+ * All applications for one job — the recruiter's per-job review page
+ * (/dashboard/recruiter/jobs/[id]/applications). Requires the backend's
+ * GET /applications to honor a jobId query param.
+ */
+export const getJobApplications = async (
+  jobId: string,
+): Promise<JobApplication[]> => {
+  try {
+    const res = await fetch(
+      `${API_BASE_URL}/applications?jobId=${encodeURIComponent(jobId)}`,
+      { signal: AbortSignal.timeout(3000) },
+    );
+
+    if (!res.ok) {
+      throw new Error(`getJobApplications failed: ${res.status}`);
+    }
+
+    return (await res.json()) as JobApplication[];
+  } catch (err) {
+    // Backend offline → empty list instead of crashing the page.
+    console.error("getJobApplications unavailable:", err);
+    return [];
+  }
+};
+
+
+/**
  * How many applications one seeker has submitted — used by the Apply flow's
  * free-tier cap (JobCard redirects to /payment at the limit). Hits the
  * dedicated backend route GET /applications/count?applicantId=<id>; a

@@ -10,6 +10,7 @@ import {
 } from "lucide-react";
 
 import { DarkPage } from "@/components/layout/page";
+import { StatusBadge } from "@/components/jobs/status-badge";
 import {
   Table,
   TableBody,
@@ -18,7 +19,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import type { ApplicationStatus, JobApplication } from "@/types/applications";
+import type { JobApplication } from "@/types/applications";
 import { formatTimeAgo, getCategoryColor, getDeptIcon } from "@/lib/jobs/display";
 import { getApplications } from "@/lib/actions/applications";
 import { useSession } from "@/lib/auth-client";
@@ -26,22 +27,6 @@ import { useSession } from "@/lib/auth-client";
 // import { headers } from "next/headers";
 
 const APPLICATION_PAGE_SIZE = 5;
-
-/* ------------------------------------------------------------------ */
-/* Status pill colors (same treatment as the manage-table badges).      */
-/* ------------------------------------------------------------------ */
-
-const STATUS_BADGE: Record<ApplicationStatus, string> = {
-  Applied:
-    "border-zinc-500/30 bg-zinc-500/10 text-zinc-400 [&>span]:bg-zinc-400",
-  Review:
-    "border-orange-400/30 bg-orange-400/10 text-orange-300 [&>span]:bg-orange-300",
-  Shortlisted:
-    "border-blue-400/30 bg-blue-400/10 text-blue-300 [&>span]:bg-blue-300",
-  Rejected: "border-red-400/30 bg-red-400/10 text-red-300 [&>span]:bg-red-300",
-  Offered:
-    "border-emerald-400/30 bg-emerald-400/10 text-emerald-300 [&>span]:bg-emerald-300",
-};
 
 export default  function MyApplicationsPage() {
 
@@ -259,13 +244,7 @@ export default  function MyApplicationsPage() {
                       {formatTimeAgo(app.appliedAt)}
                     </TableCell>
                     <TableCell>
-                      {/* dot indicator + colored pill per status */}
-                      <span
-                        className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-medium ${STATUS_BADGE[app.status]}`}
-                      >
-                        <span className="size-1.5 rounded-full" />
-                        {app.status}
-                      </span>
+                      <StatusBadge status={app.status} />
                     </TableCell>
                     <TableCell className="text-right">
                       <button

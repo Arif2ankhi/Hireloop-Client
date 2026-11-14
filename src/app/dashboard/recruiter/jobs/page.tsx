@@ -202,6 +202,24 @@ export default async function RecruiterJobsPage() {
                           Update
                         </Button>
                         {job._id || job.id ? (
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            render={
+                              <Link
+                                href={`/dashboard/recruiter/jobs/${
+                                  job._id ?? job.id
+                                }/applications`}
+                              />
+                            }
+                            nativeButton={false}
+                            className="h-8 rounded-lg border-white/10 bg-[#1a1a20] px-3 text-xs text-zinc-300 hover:bg-white/5 hover:text-white"
+                          >
+                            <UsersRoundIcon className="size-3.5" />
+                            View Applications
+                          </Button>
+                        ) : null}
+                        {job._id || job.id ? (
                           <DeleteJobDialog
                             jobId={(job._id ?? job.id) as string}
                             jobTitle={job.title}
