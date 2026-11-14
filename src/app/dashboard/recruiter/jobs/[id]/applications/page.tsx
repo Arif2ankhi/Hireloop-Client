@@ -1,7 +1,8 @@
 import { createElement } from "react";
 import { UsersRoundIcon } from "lucide-react";
 
-import { StatusBadge } from "@/components/jobs/status-badge";
+import { StatusDropdown } from "@/components/jobs/status-dropdown";
+import { STATUS_TEXT } from "@/components/jobs/status-badge";
 import { DarkPage, PageHeader } from "@/components/layout/page";
 import {
   Table,
@@ -120,8 +121,8 @@ export default async function JobApplicationsPage({
                 <TableHead className="text-xs font-medium text-zinc-500">
                   STATUS
                 </TableHead>
-                <TableHead className="text-right text-xs font-medium text-zinc-500">
-                  ACTION
+                <TableHead className="text-xs font-medium text-zinc-500">
+                  UPDATE STATUS
                 </TableHead>
               </TableRow>
             </TableHeader>
@@ -179,23 +180,18 @@ export default async function JobApplicationsPage({
                       {formatTimeAgo(app.appliedAt)}
                     </TableCell>
 
-                    <TableCell>
-                      <StatusBadge status={app.status} />
+                    {/* Current status as colored plain text (per the mock) */}
+                    <TableCell
+                      className={`text-sm font-medium ${STATUS_TEXT[app.status]}`}
+                    >
+                      {app.status}
                     </TableCell>
 
-                    {/* Status update — DB wiring is a follow-up; render the
-                        control disabled so the column is ready for it. */}
-                    <TableCell className="text-right">
-                      {/* TODO: wire to PATCH/POST /applications/:id status
-                          update once the backend route exists. */}
-                      <button
-                        type="button"
-                        disabled
-                        title="Status updates are coming soon"
-                        className="rounded-md px-2.5 py-1 text-xs font-medium text-brand opacity-50"
-                      >
-                        Update Status
-                      </button>
+                    <TableCell>
+                      <StatusDropdown
+                        applicationId={app._id ?? ""}
+                        status={app.status}
+                      />
                     </TableCell>
                   </TableRow>
                 ))

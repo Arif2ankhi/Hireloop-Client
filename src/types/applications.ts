@@ -6,11 +6,12 @@
 
 /**
  * Progress of one application, as shown in the status column:
- * Applied → Review → Shortlisted → Offered (or Rejected).
+ * Applied → Review → Interview → Shortlisted → Offered (or Rejected).
  */
 export type ApplicationStatus =
   | "Applied"
   | "Review"
+  | "Interview"
   | "Shortlisted"
   | "Rejected"
   | "Offered";

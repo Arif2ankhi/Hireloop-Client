@@ -1,5 +1,5 @@
 import { API_BASE_URL } from "@/lib/api/config";
-import type { JobApplication } from "@/types/applications";
+import type { ApplicationStatus, JobApplication } from "@/types/applications";
 
 /**
  * Persist one application to the backend: POST /applications.
@@ -97,6 +97,31 @@ export const getApplicationsCount = async (
   } catch (err) {
     console.error("getApplicationsCount unavailable:", err);
     return { count: 0 };
+  }
+};
+
+
+/**
+ * Recruiter status update for one application: PATCH /applications/:id/status
+ * with { status }. Follows the write-wrapper convention — throws on failure
+ * so the caller can roll back its optimistic UI change.
+ */
+export const updateApplicationStatus = async (
+  applicationId: string,
+  status: ApplicationStatus,
+): Promise<void> => {
+  const res = await fetch(
+    `${API_BASE_URL}/applications/${applicationId}/status`,
+    {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ status }),
+      signal: AbortSignal.timeout(5000),
+    },
+  );
+
+  if (!res.ok) {
+    throw new Error(`updateApplicationStatus failed: ${res.status}`);
   }
 };
 
